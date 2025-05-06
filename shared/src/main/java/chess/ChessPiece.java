@@ -9,9 +9,9 @@ import java.util.Objects;
  * Note: You can add to this class, but you may not alter
  * signature of the existing methods.
  */
-public class ChessPiece implements PieceMoveCalculator {
-    ChessGame.TeamColor pieceColor;
-    ChessPiece.PieceType type;
+public class ChessPiece {
+    private final ChessGame.TeamColor pieceColor;
+    private final ChessPiece.PieceType type;
     public ChessPiece(ChessGame.TeamColor pieceColor, ChessPiece.PieceType type) {
         this.pieceColor = pieceColor;
         this.type = type;
@@ -51,7 +51,8 @@ public class ChessPiece implements PieceMoveCalculator {
      * @return Collection of valid moves
      */
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
-        throw new RuntimeException("Not implemented");
+        RookMoveCalculator rookMoves = new RookMoveCalculator();
+        return rookMoves.pieceMoves(board,myPosition);
     }
 
     @Override
