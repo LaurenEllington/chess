@@ -55,7 +55,10 @@ public class ChessMove {
             return false;
         }
         ChessMove chessMove = (ChessMove) o;
-        return Objects.equals(getStartPosition(), chessMove.getStartPosition()) && Objects.equals(getEndPosition(), chessMove.getEndPosition()) && getPromotionPiece() == chessMove.getPromotionPiece();
+        boolean startEquals = Objects.equals(startPosition, chessMove.getStartPosition());
+        boolean endEquals = Objects.equals(endPosition, chessMove.getEndPosition());
+        boolean promotionEquals = promotionPiece == chessMove.getPromotionPiece();
+        return startEquals && endEquals && promotionEquals;
     }
 
     @Override
