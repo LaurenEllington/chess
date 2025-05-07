@@ -7,7 +7,7 @@ import chess.ChessPosition;
 import java.util.ArrayList;
 import java.util.Collection;
 
-public class directionMovement {
+public class DirectionMovement {
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition, int[][] direction) {
         ArrayList<ChessMove> moves = new ArrayList<ChessMove>();
         for(int i = 0; i < direction.length;i++){
