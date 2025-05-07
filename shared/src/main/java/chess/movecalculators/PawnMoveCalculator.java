@@ -14,54 +14,37 @@ public class PawnMoveCalculator implements PieceMoveCalculator{
         int row = myPosition.getRow() + direction;
         int col = myPosition.getColumn();
         if (row >= 1 && row <= 8 && col >= 1 && col <= 8) {//if potential move location is in-bounds
-            ChessPosition newPosition = new ChessPosition(row, col); //try to move straight forward
-            if (board.getPiece(newPosition) == null) {//if there is no piece in the potential move location
-                if (row == 8 || row == 1){ //if piece is at the end promote
-                    moves.add(new ChessMove(myPosition, newPosition, ChessPiece.PieceType.QUEEN));
-                    moves.add(new ChessMove(myPosition, newPosition, ChessPiece.PieceType.BISHOP));
-                    moves.add(new ChessMove(myPosition, newPosition, ChessPiece.PieceType.ROOK));
-                    moves.add(new ChessMove(myPosition, newPosition, ChessPiece.PieceType.KNIGHT));
-                }
-                else {
-                    moves.add(new ChessMove(myPosition, newPosition, null));
-                }
-                //if the pawn is in the starting location for its color potentially move forward 2
-                if ((myPosition.getRow() == 2 && myColor == white) || (myPosition.getRow() == 7 && myColor != white)) {
-                    newPosition = new ChessPosition(row + direction, col);
-                    if (board.getPiece(newPosition) == null) {//if there is no piece in the potential move location
-                        moves.add(new ChessMove(myPosition, newPosition, null));
-                    }
-                }
-
-            }
-            if (col != 8){//capture on the right
-                newPosition = new ChessPosition(myPosition.getRow()+direction,myPosition.getColumn()+1);
-                //if there is a piece to capture
-                if (board.getPiece(newPosition)!=null && board.getPiece(newPosition).getTeamColor()!=myColor){
-                    if(row==8 || row == 1){ //if the pawn is at the end now
-                        moves.add(new ChessMove(myPosition, newPosition, ChessPiece.PieceType.QUEEN));
-                        moves.add(new ChessMove(myPosition, newPosition, ChessPiece.PieceType.BISHOP));
-                        moves.add(new ChessMove(myPosition, newPosition, ChessPiece.PieceType.ROOK));
-                        moves.add(new ChessMove(myPosition, newPosition, ChessPiece.PieceType.KNIGHT));
-                    }
-                    else { //pawn is not at the end
-                        moves.add(new ChessMove(myPosition, newPosition, null));
+            ChessPosition newPosition = new ChessPosition(row, col);
+            ArrayList<ChessPosition> positions = new ArrayList<>();
+            //if pawn can move forward add position to list
+            if (board.getPiece(newPosition) == null){
+                positions.add(newPosition);
+                if ((myPosition.getRow()==2 && myColor==white) || (myPosition.getRow()==7 && myColor != white)){
+                    if (board.getPiece(new ChessPosition(row+direction,col))==null){
+                        positions.add(new ChessPosition(row+direction,col));
                     }
                 }
             }
-            if (col != 1){//capture on the left
-                newPosition = new ChessPosition(myPosition.getRow()+direction,myPosition.getColumn()-1);
-                //if there is a piece to capture
-                if (board.getPiece(newPosition)!=null && board.getPiece(newPosition).getTeamColor()!=myColor){
-                    if(row==8 || row == 1){ //if the pawn is at the end now promote
-                        moves.add(new ChessMove(myPosition, newPosition, ChessPiece.PieceType.QUEEN));
-                        moves.add(new ChessMove(myPosition, newPosition, ChessPiece.PieceType.BISHOP));
-                        moves.add(new ChessMove(myPosition, newPosition, ChessPiece.PieceType.ROOK));
-                        moves.add(new ChessMove(myPosition, newPosition, ChessPiece.PieceType.KNIGHT));
-                    }
-                    else { //pawn is not at the end
-                        moves.add(new ChessMove(myPosition, newPosition, null));
-                    }
+            //if pawn can capture right add position to list
+            if (col+1 <= 8 && board.getPiece(new ChessPosition(row,col+1))!=null){
+                if (board.getPiece(new ChessPosition(row,col+1)).getTeamColor()!=myColor){
+                    positions.add(new ChessPosition(row,col+1));
+                }
+            }
+            //if pawn can capture left add position to list
+            if (col-1 >= 1 && board.getPiece(new ChessPosition(row,col-1))!=null){
+                if (board.getPiece(new ChessPosition(row,col-1)).getTeamColor()!=myColor){
+                    positions.add(new ChessPosition(row,col-1));
+                }
+            }
+            for (ChessPosition position : positions) {
+                if (position.getRow() == 8 || position.getRow() == 1) { //if piece is at the end promote
+                    moves.add(new ChessMove(myPosition, position, ChessPiece.PieceType.QUEEN));
+                    moves.add(new ChessMove(myPosition, position, ChessPiece.PieceType.BISHOP));
+                    moves.add(new ChessMove(myPosition, position, ChessPiece.PieceType.ROOK));
+                    moves.add(new ChessMove(myPosition, position, ChessPiece.PieceType.KNIGHT));
+                } else {
+                    moves.add(new ChessMove(myPosition, position, null));
                 }
             }
 
