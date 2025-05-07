@@ -1,19 +1,19 @@
-package chess.moveCalculators;
+package chess.movecalculators;
 
 import chess.*;
 
 import java.util.ArrayList;
 import java.util.Collection;
 
-public class QueenMoveCalculator implements PieceMoveCalculator{
+public class BishopMoveCalculator implements PieceMoveCalculator{
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
         ArrayList<ChessMove> moves = new ArrayList<ChessMove>();
-        int[][] direction = {{1,0},{-1,0},{0,1},{0,-1},{1,1},{-1,-1},{-1,1},{1,-1}};
+        int[][] direction = {{1,1},{-1,-1},{-1,1},{1,-1}};
         for(int i = 0; i < direction.length;i++){
-            int row_modifier = direction[i][0];
-            int col_modifier = direction[i][1];
-            int row = myPosition.getRow()+row_modifier;
-            int col = myPosition.getColumn()+col_modifier;
+            int rowModifier = direction[i][0];
+            int colModifier = direction[i][1];
+            int row = myPosition.getRow()+ rowModifier;
+            int col = myPosition.getColumn()+ colModifier;
             while(row >= 1 && row <= 8 && col >=1 && col <= 8){
                 ChessPosition newPosition = new ChessPosition(row,col);
                 if(board.getPiece(newPosition)==null){//if there is no piece in the potential move location
@@ -25,8 +25,8 @@ public class QueenMoveCalculator implements PieceMoveCalculator{
                     }
                     break;
                 }
-                row+=row_modifier;
-                col+=col_modifier;
+                row+= rowModifier;
+                col+= colModifier;
             }
         }
 

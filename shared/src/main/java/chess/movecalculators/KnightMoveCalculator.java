@@ -1,19 +1,19 @@
-package chess.moveCalculators;
+package chess.movecalculators;
 
 import chess.*;
 
-import java.util.Collection;
 import java.util.ArrayList;
+import java.util.Collection;
 
-public class KingMoveCalculator implements PieceMoveCalculator{
+public class KnightMoveCalculator implements PieceMoveCalculator{
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
         ArrayList<ChessMove> moves = new ArrayList<ChessMove>();
-        int[][] direction = {{1,0},{-1,0},{0,1},{0,-1},{1,1},{-1,-1},{-1,1},{1,-1}};
+        int[][] direction = {{2,1},{1,2},{-1,2},{-2,1},{-2,-1},{-1,-2},{1,-2},{2,-1}};
         for(int i = 0; i < direction.length;i++){
-            int row_modifier = direction[i][0];
-            int col_modifier = direction[i][1];
-            int row = myPosition.getRow()+row_modifier;
-            int col = myPosition.getColumn()+col_modifier;
+            int rowModifier = direction[i][0];
+            int colModifier = direction[i][1];
+            int row = myPosition.getRow()+rowModifier;
+            int col = myPosition.getColumn()+colModifier;
             if(row >= 1 && row <= 8 && col >=1 && col <= 8){
                 ChessPosition newPosition = new ChessPosition(row,col);
                 if(board.getPiece(newPosition)==null){//if there is no piece in the potential move location
