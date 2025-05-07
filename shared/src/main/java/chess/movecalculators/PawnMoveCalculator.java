@@ -7,7 +7,7 @@ import java.util.Collection;
 
 public class PawnMoveCalculator implements PieceMoveCalculator{
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
-        ArrayList<ChessMove> moves = new ArrayList<ChessMove>();
+        ArrayList<ChessMove> moves = new ArrayList<>();
         ChessGame.TeamColor myColor = board.getPiece(myPosition).getTeamColor();
         ChessGame.TeamColor white = ChessGame.TeamColor.WHITE;
         int direction = (myColor == white) ? 1 : -1; //if white go positive direction if black go negative
