@@ -9,7 +9,7 @@ import java.util.Collection;
 
 public class SingleMovement {
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition, int[][] direction) {
-        ArrayList<ChessMove> moves = new ArrayList<ChessMove>();
+        ArrayList<ChessMove> moves = new ArrayList<>();
         for(int i = 0; i < direction.length;i++){
             int rowModifier = direction[i][0];
             int colModifier = direction[i][1];
