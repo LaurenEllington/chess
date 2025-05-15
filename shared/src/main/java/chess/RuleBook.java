@@ -51,14 +51,19 @@ public class RuleBook {
         }
         return false;
     }
-
     public boolean isInCheckmate(ChessBoard board,ChessGame.TeamColor teamColor) {
         /*
         if(!isInCheck(board,teamColor)){
             return false;
         }
         Collection<ChessMove> allMoves = allMoves(board,teamColor);
+        for(ChessMove move : allMoves){
 
+        }
          */
+        return false;
+    }
+    public boolean isInStalemate(ChessBoard board, ChessGame.TeamColor teamColor) {
+        return false;
     }
 }

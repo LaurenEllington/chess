@@ -50,8 +50,22 @@ public class ChessGame {
      * startPosition
      */
     public Collection<ChessMove> validMoves(ChessPosition startPosition) {
-        throw new RuntimeException("Not implemented");
+        if(board.getPiece(startPosition)==null){
+            return null;
+        }
+        RuleBook rules = new RuleBook();
+        Collection<ChessMove> potentialMoves = board.getPiece(startPosition).pieceMoves(board,startPosition);
+        potentialMoves.removeIf(move -> rules.wouldCaptureKing(move, board));
         //piece is not allowed to take King
+        //make a potential board where the move is made and see if our team is in check
+        for(ChessMove move : potentialMoves){
+            ChessBoard potentialBoard = rules.potentialBoard(move,board);
+            //if our team is put in check by this move
+            if(rules.isInCheck(potentialBoard,board.getPiece(startPosition).getTeamColor())){
+                potentialMoves.remove(move);
+            }
+        }
+        return potentialMoves;
     }
 
     /**
@@ -61,8 +75,12 @@ public class ChessGame {
      * @throws InvalidMoveException if move is invalid
      */
     public void makeMove(ChessMove move) throws InvalidMoveException {
-        throw new RuntimeException("Not implemented");
-        //update board/promote
+        Collection<ChessMove> validMovesCollection = validMoves(move.getStartPosition());
+        if(!validMovesCollection.contains(move)){
+            throw new InvalidMoveException(move.toString() + " is not a valid move.");
+        }
+        RuleBook rules = new RuleBook();
+        board = rules.potentialBoard(move,board);
     }
 
     /**
@@ -72,7 +90,8 @@ public class ChessGame {
      * @return True if the specified team is in check
      */
     public boolean isInCheck(TeamColor teamColor) {
-        throw new RuntimeException("Not implemented");
+        RuleBook rules = new RuleBook();
+        return rules.isInCheck(board,teamColor);
     }
 
     /**
@@ -82,8 +101,8 @@ public class ChessGame {
      * @return True if the specified team is in checkmate
      */
     public boolean isInCheckmate(TeamColor teamColor) {
-        throw new RuntimeException("Not implemented");
-        //no valid moves and opposing team is in place to take king
+        RuleBook rules = new RuleBook();
+        return rules.isInCheckmate(board,teamColor);
     }
 
     /**
@@ -94,8 +113,8 @@ public class ChessGame {
      * @return True if the specified team is in stalemate, otherwise false
      */
     public boolean isInStalemate(TeamColor teamColor) {
-        throw new RuntimeException("Not implemented");
-        //no valid moves but opposing team cannot capture the King
+        RuleBook rules = new RuleBook();
+        return rules.isInStalemate(board,teamColor);
     }
 
     /**
