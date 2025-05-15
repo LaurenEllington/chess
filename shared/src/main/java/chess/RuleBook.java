@@ -20,7 +20,7 @@ public class RuleBook {
         return moves;
     }
     //returns an altered board
-    public ChessBoard changeBoard(ChessMove move, ChessBoard board) {
+    public ChessBoard potentialBoard(ChessMove move, ChessBoard board) {
         ChessBoard newBoard = board;
         ChessPiece piece = board.getPiece(move.getStartPosition());
         if(move.getPromotionPiece()!=null){
@@ -33,7 +33,7 @@ public class RuleBook {
     //returns true if move would capture a king
     //because of the way piecemoves is structured, friendly fire is not allowed
     //so true if move captures enemy king
-    public boolean kingCapture(ChessMove move, ChessBoard board) {
+    public boolean wouldCaptureKing(ChessMove move, ChessBoard board) {
         if(board.getPiece(move.getEndPosition())==null){ //if there is no piece to capture
             return false;
         }
@@ -45,7 +45,7 @@ public class RuleBook {
         RuleBook rules = new RuleBook();
         Collection<ChessMove> enemyMoves = rules.allMoves(board,enemyColor);
         for(ChessMove move : enemyMoves){
-            if(rules.kingCapture(move,board)){
+            if(rules.wouldCaptureKing(move,board)){
                 return true;
             }
         }
