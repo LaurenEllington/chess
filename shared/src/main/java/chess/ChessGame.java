@@ -12,6 +12,7 @@ import java.util.Objects;
 public class ChessGame {
     TeamColor teamTurn;
     ChessBoard board;
+    RuleBook rules = new RuleBook();
     public ChessGame() {
         teamTurn = TeamColor.WHITE;
         board = new ChessBoard();
@@ -50,22 +51,7 @@ public class ChessGame {
      * startPosition
      */
     public Collection<ChessMove> validMoves(ChessPosition startPosition) {
-        if(board.getPiece(startPosition)==null){
-            return null;
-        }
-        RuleBook rules = new RuleBook();
-        Collection<ChessMove> potentialMoves = board.getPiece(startPosition).pieceMoves(board,startPosition);
-        potentialMoves.removeIf(move -> rules.wouldCaptureKing(move, board));
-        //piece is not allowed to take King
-        //make a potential board where the move is made and see if our team is in check
-        for(ChessMove move : potentialMoves){
-            ChessBoard potentialBoard = rules.potentialBoard(move,board);
-            //if our team is put in check by this move
-            if(rules.isInCheck(potentialBoard,board.getPiece(startPosition).getTeamColor())){
-                potentialMoves.remove(move);
-            }
-        }
-        return potentialMoves;
+        return rules.validMoves(board,startPosition);
     }
 
     /**
@@ -79,7 +65,6 @@ public class ChessGame {
         if(!validMovesCollection.contains(move)){
             throw new InvalidMoveException(move.toString() + " is not a valid move.");
         }
-        RuleBook rules = new RuleBook();
         board = rules.potentialBoard(move,board);
     }
 
@@ -90,7 +75,6 @@ public class ChessGame {
      * @return True if the specified team is in check
      */
     public boolean isInCheck(TeamColor teamColor) {
-        RuleBook rules = new RuleBook();
         return rules.isInCheck(board,teamColor);
     }
 
@@ -101,7 +85,6 @@ public class ChessGame {
      * @return True if the specified team is in checkmate
      */
     public boolean isInCheckmate(TeamColor teamColor) {
-        RuleBook rules = new RuleBook();
         return rules.isInCheckmate(board,teamColor);
     }
 
@@ -113,7 +96,6 @@ public class ChessGame {
      * @return True if the specified team is in stalemate, otherwise false
      */
     public boolean isInStalemate(TeamColor teamColor) {
-        RuleBook rules = new RuleBook();
         return rules.isInStalemate(board,teamColor);
     }
 
