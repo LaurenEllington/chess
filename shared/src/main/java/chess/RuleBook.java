@@ -71,15 +71,14 @@ public class RuleBook {
         if(board.getPiece(startPosition)==null){
             return null;
         }
-        RuleBook rules = new RuleBook();
         Collection<ChessMove> potentialMoves = board.getPiece(startPosition).pieceMoves(board,startPosition);
-        potentialMoves.removeIf(move -> rules.wouldCaptureKing(move, board));
+        potentialMoves.removeIf(move -> wouldCaptureKing(move, board));
         //piece is not allowed to take King
         //make a potential board where the move is made and see if our team is in check
         for(ChessMove move : potentialMoves){
-            ChessBoard potentialBoard = rules.potentialBoard(move,board);
+            ChessBoard potentialBoard = potentialBoard(move,board);
             //if our team is put in check by this move
-            if(rules.isInCheck(potentialBoard,board.getPiece(startPosition).getTeamColor())){
+            if(isInCheck(potentialBoard,board.getPiece(startPosition).getTeamColor())){
                 potentialMoves.remove(move);
             }
         }
