@@ -1,0 +1,64 @@
+package chess;
+
+import java.util.Collection;
+import java.util.ArrayList;
+
+public class RuleBook {
+    //returns all moves a color can make regardless of whether they are legal
+    public Collection<ChessMove> allMoves(ChessBoard board, ChessGame.TeamColor myColor) {
+        //needs to be given an altered chessboard with the potential move and see if the king is now takeable
+        //for check & valid moves
+        ArrayList<ChessMove> moves = new ArrayList<>();
+        for(int row = 1; row <=8; row++){
+            for(int col = 1; col<=8; col++){
+                ChessPiece currentPiece = board.getPiece(new ChessPosition(row,col));
+                if(currentPiece!=null && currentPiece.getTeamColor()==myColor){
+                    moves.addAll(currentPiece.pieceMoves(board,new ChessPosition(row,col)));
+                }
+            }
+        }
+        return moves;
+    }
+    //returns an altered board
+    public ChessBoard changeBoard(ChessMove move, ChessBoard board) {
+        ChessBoard newBoard = board;
+        ChessPiece piece = board.getPiece(move.getStartPosition());
+        if(move.getPromotionPiece()!=null){
+            piece = new ChessPiece(piece.getTeamColor(), move.getPromotionPiece());
+        }
+        newBoard.addPiece(move.getStartPosition(),null);
+        newBoard.addPiece(move.getEndPosition(),piece);
+        return newBoard;
+    }
+    //returns true if move would capture a king
+    //because of the way piecemoves is structured, friendly fire is not allowed
+    //so true if move captures enemy king
+    public boolean kingCapture(ChessMove move, ChessBoard board) {
+        if(board.getPiece(move.getEndPosition())==null){ //if there is no piece to capture
+            return false;
+        }
+        return board.getPiece(move.getEndPosition()).getPieceType() == ChessPiece.PieceType.KING;
+    }
+
+    public boolean isInCheck(ChessBoard board, ChessGame.TeamColor teamColor) {
+        ChessGame.TeamColor enemyColor = teamColor == ChessGame.TeamColor.WHITE? ChessGame.TeamColor.BLACK: ChessGame.TeamColor.WHITE;
+        RuleBook rules = new RuleBook();
+        Collection<ChessMove> enemyMoves = rules.allMoves(board,enemyColor);
+        for(ChessMove move : enemyMoves){
+            if(rules.kingCapture(move,board)){
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public boolean isInCheckmate(ChessBoard board,ChessGame.TeamColor teamColor) {
+        /*
+        if(!isInCheck(board,teamColor)){
+            return false;
+        }
+        Collection<ChessMove> allMoves = allMoves(board,teamColor);
+
+         */
+    }
+}
