@@ -66,12 +66,11 @@ public class ChessGame {
         }
         if(board.getPiece(move.getStartPosition()).getTeamColor()!=teamTurn){
             throw new InvalidMoveException("It is not " + board.getPiece(move.getStartPosition()).getTeamColor() + "'s turn");
-        }/*
+        }
         Collection<ChessMove> validMovesCollection = validMoves(move.getStartPosition());
         if(!validMovesCollection.contains(move)){
             throw new InvalidMoveException(move.toString() + " is not a valid move.");
         }
-        System.out.println(move);*/
         board = rules.potentialBoard(move,board);
         teamTurn = teamTurn == TeamColor.WHITE ? TeamColor.BLACK: TeamColor.WHITE;
     }
