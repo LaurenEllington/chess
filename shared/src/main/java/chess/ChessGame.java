@@ -69,7 +69,7 @@ public class ChessGame {
         }
         Collection<ChessMove> validMovesCollection = validMoves(move.getStartPosition());
         if(!validMovesCollection.contains(move)){
-            throw new InvalidMoveException(move.toString() + " is not a valid move.");
+            throw new InvalidMoveException(move + " is not a valid move.");
         }
         board = rules.potentialBoard(move,board);
         teamTurn = teamTurn == TeamColor.WHITE ? TeamColor.BLACK: TeamColor.WHITE;

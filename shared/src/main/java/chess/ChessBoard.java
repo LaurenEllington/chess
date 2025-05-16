@@ -16,9 +16,7 @@ public class ChessBoard {
     public ChessBoard(ChessBoard board) {
         this.squares = new ChessPiece[8][8];
         for(int row = 0; row<8;row++){
-            for(int col=0;col<8;col++){
-                squares[row][col]=board.squares[row][col];
-            }
+            System.arraycopy(board.squares[row], 0, squares[row], 0, 8);
         }
     }
 
