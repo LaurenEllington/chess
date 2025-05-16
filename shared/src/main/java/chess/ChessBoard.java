@@ -13,6 +13,14 @@ public class ChessBoard {
     private ChessPiece[][] squares = new ChessPiece[8][8];
     public ChessBoard() {
     }
+    public ChessBoard(ChessBoard board) {
+        this.squares = new ChessPiece[8][8];
+        for(int row = 0; row<8;row++){
+            for(int col=0;col<8;col++){
+                squares[row][col]=board.squares[row][col];
+            }
+        }
+    }
 
     /**
      * Adds a chess piece to the chessboard
@@ -79,5 +87,14 @@ public class ChessBoard {
     @Override
     public int hashCode() {
         return Arrays.deepHashCode(squares);
+    }
+
+    @Override
+    public String toString() {
+        String str = "";
+        for(int row = 7;row>=0;row--){
+            str+=Arrays.toString(squares[row])+"\n";
+        }
+        return str;
     }
 }

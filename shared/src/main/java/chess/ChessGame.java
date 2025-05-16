@@ -61,11 +61,19 @@ public class ChessGame {
      * @throws InvalidMoveException if move is invalid
      */
     public void makeMove(ChessMove move) throws InvalidMoveException {
+        if(board.getPiece(move.getStartPosition())==null){
+            throw new InvalidMoveException();
+        }
+        if(board.getPiece(move.getStartPosition()).getTeamColor()!=teamTurn){
+            throw new InvalidMoveException("It is not " + board.getPiece(move.getStartPosition()).getTeamColor() + "'s turn");
+        }/*
         Collection<ChessMove> validMovesCollection = validMoves(move.getStartPosition());
         if(!validMovesCollection.contains(move)){
             throw new InvalidMoveException(move.toString() + " is not a valid move.");
         }
+        System.out.println(move);*/
         board = rules.potentialBoard(move,board);
+        teamTurn = teamTurn == TeamColor.WHITE ? TeamColor.BLACK: TeamColor.WHITE;
     }
 
     /**
@@ -85,7 +93,7 @@ public class ChessGame {
      * @return True if the specified team is in checkmate
      */
     public boolean isInCheckmate(TeamColor teamColor) {
-        return rules.isInCheckmate(board,teamColor);
+        return rules.isInCheckmate(board,teamColor,teamTurn);
     }
 
     /**
@@ -96,7 +104,7 @@ public class ChessGame {
      * @return True if the specified team is in stalemate, otherwise false
      */
     public boolean isInStalemate(TeamColor teamColor) {
-        return rules.isInStalemate(board,teamColor);
+        return rules.isInStalemate(board,teamColor,teamTurn);
     }
 
     /**

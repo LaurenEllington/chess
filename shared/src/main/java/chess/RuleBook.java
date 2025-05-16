@@ -19,15 +19,28 @@ public class RuleBook {
         }
         return moves;
     }
+    //returns all valid moves a color can make
+    public Collection<ChessMove> allValidMoves(ChessBoard board, ChessGame.TeamColor myColor) {
+        ArrayList<ChessMove> moves = new ArrayList<>();
+        for(int row = 1; row <=8; row++){
+            for(int col = 1; col<=8; col++){
+                ChessPiece currentPiece = board.getPiece(new ChessPosition(row,col));
+                if(currentPiece!=null && currentPiece.getTeamColor()==myColor){
+                    moves.addAll(validMoves(board,new ChessPosition(row,col)));
+                }
+            }
+        }
+        return moves;
+    }
     //returns an altered board
     public ChessBoard potentialBoard(ChessMove move, ChessBoard board) {
-        ChessBoard newBoard = board;
         ChessPiece piece = board.getPiece(move.getStartPosition());
         if(move.getPromotionPiece()!=null){
             piece = new ChessPiece(piece.getTeamColor(), move.getPromotionPiece());
         }
-        newBoard.addPiece(move.getStartPosition(),null);
+        ChessBoard newBoard = new ChessBoard(board);
         newBoard.addPiece(move.getEndPosition(),piece);
+        newBoard.addPiece(move.getStartPosition(),null);
         return newBoard;
     }
     //returns true if move would capture a king
@@ -41,46 +54,49 @@ public class RuleBook {
     }
 
     public boolean isInCheck(ChessBoard board, ChessGame.TeamColor teamColor) {
-        ChessGame.TeamColor enemyColor = teamColor == ChessGame.TeamColor.WHITE? ChessGame.TeamColor.BLACK: ChessGame.TeamColor.WHITE;
-        RuleBook rules = new RuleBook();
-        Collection<ChessMove> enemyMoves = rules.allMoves(board,enemyColor);
+        ChessGame.TeamColor enemyColor;
+        if(teamColor==ChessGame.TeamColor.WHITE){
+            enemyColor=ChessGame.TeamColor.BLACK;
+        }
+        else{
+            enemyColor=ChessGame.TeamColor.WHITE;
+        }
+        Collection<ChessMove> enemyMoves = allMoves(board,enemyColor);
         for(ChessMove move : enemyMoves){
-            if(rules.wouldCaptureKing(move,board)){
+            if(wouldCaptureKing(move,board)){
                 return true;
             }
         }
         return false;
     }
-    public boolean isInCheckmate(ChessBoard board,ChessGame.TeamColor teamColor) {
-        /*
-        if(!isInCheck(board,teamColor)){
+    public boolean isInCheckmate(ChessBoard board,ChessGame.TeamColor teamColor,ChessGame.TeamColor teamTurn) {
+        if(!isInCheck(board,teamColor)||teamColor!=teamTurn){
             return false;
         }
-        Collection<ChessMove> allMoves = allMoves(board,teamColor);
-        for(ChessMove move : allMoves){
-
+        Collection<ChessMove> allValidMoves = allValidMoves(board,teamColor);
+        return allValidMoves.isEmpty();
+    }
+    public boolean isInStalemate(ChessBoard board, ChessGame.TeamColor teamColor, ChessGame.TeamColor teamTurn) {
+        if(isInCheck(board,teamColor) || teamColor!=teamTurn){
+            return false;
         }
-         */
-        return false;
-    }
-    public boolean isInStalemate(ChessBoard board, ChessGame.TeamColor teamColor) {
-        return false;
+        Collection<ChessMove> allValidMoves = allValidMoves(board,teamColor);
+        return allValidMoves.isEmpty();
     }
 
-    public Collection<ChessMove> validMoves(ChessBoard board,ChessPosition startPosition) {
+    public Collection<ChessMove> validMoves( ChessBoard board,ChessPosition startPosition) {
         if(board.getPiece(startPosition)==null){
             return null;
         }
         ChessGame.TeamColor myColor = board.getPiece(startPosition).getTeamColor();
-        Collection<ChessMove> potentialMoves = board.getPiece(startPosition).pieceMoves(board,startPosition);
-        potentialMoves.removeIf(move -> wouldCaptureKing(move, board));
-        //piece is not allowed to take King
+        ArrayList<ChessMove> potentialMoves = new ArrayList<>(board.getPiece(startPosition).pieceMoves(board,startPosition));
         //make a potential board where the move is made and see if our team is in check
-        for(ChessMove move : potentialMoves){
-            ChessBoard potentialBoard = potentialBoard(move,board);
+        for(int i = 0; i < potentialMoves.size(); i++){
+            ChessBoard potential = potentialBoard(potentialMoves.get(i),board);
             //if our team is put in check by this move
-            if(isInCheck(potentialBoard,myColor)){
-                potentialMoves.remove(move);
+            if(isInCheck(potential,myColor)){
+                potentialMoves.remove(potentialMoves.get(i));
+                i--;
             }
         }
         return potentialMoves;
