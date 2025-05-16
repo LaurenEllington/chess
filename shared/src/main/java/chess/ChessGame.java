@@ -61,8 +61,9 @@ public class ChessGame {
      * @throws InvalidMoveException if move is invalid
      */
     public void makeMove(ChessMove move) throws InvalidMoveException {
+        //throws errors if invalid
         if(board.getPiece(move.getStartPosition())==null){
-            throw new InvalidMoveException();
+            throw new InvalidMoveException("No piece at specified location.");
         }
         if(board.getPiece(move.getStartPosition()).getTeamColor()!=teamTurn){
             throw new InvalidMoveException("It is not " + board.getPiece(move.getStartPosition()).getTeamColor() + "'s turn");
@@ -71,7 +72,9 @@ public class ChessGame {
         if(!validMovesCollection.contains(move)){
             throw new InvalidMoveException(move + " is not a valid move.");
         }
+        //then uses rulebook to actually change the board
         board = rules.potentialBoard(move,board);
+        //and finally end the players turn
         teamTurn = teamTurn == TeamColor.WHITE ? TeamColor.BLACK: TeamColor.WHITE;
     }
 
