@@ -43,6 +43,36 @@ public class GameService {
         //create result
         return new CreateGameResult(game.gameID());
     }
+    public void joinGame(JoinGameRequest request) throws Exception{
+        AuthData authorization = authorize(request.authToken());
+
+        //verify that gameID is valid and has an associated game
+        GameData game = gameDao.getGame(request.gameID());
+        if(game==null){
+            throw new Exception("Invalid gameID.");
+        }
+
+        //verify that requested color isn't taken
+        if(request.playerColor()==ChessGame.TeamColor.BLACK&&game.blackUsername()!=null){
+            throw new AlreadyTakenException("Color already taken.");
+        }
+        else if(request.playerColor()==ChessGame.TeamColor.WHITE&&game.whiteUsername()!=null){
+            throw new AlreadyTakenException("Color already taken.");
+        }
+
+        //create gamedata to add requester as specified color
+        //debug: add host as other color
+        GameData newGame;
+        if(request.playerColor()==ChessGame.TeamColor.BLACK) {
+            newGame = new GameData(request.gameID(), game.whiteUsername(),authorization.username(),game.gameName(),game.game());
+        }
+        else{
+            newGame = new GameData(request.gameID(),authorization.username(),game.blackUsername(),game.gameName(),game.game());
+        }
+
+        //add gamedata to database
+        gameDao.updateGame(request.gameID(),newGame);
+    }
     private int generateID(){
         return 1234;
     }
