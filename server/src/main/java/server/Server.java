@@ -11,12 +11,10 @@ public class Server {
         Spark.staticFiles.location("web");
         // Register your endpoints and handle exceptions here.
         Spark.delete("/db",(req, res) -> {
-            res.status(200);
+            res.status(200); //not sure if this is necessary
             return "{}";
         });
-        //This line initializes the server and can be removed once you have a functioning endpoint 
-        //Spark.init();
-
+        //Spark.post("/user", (req, res) -> handleRegistration(req, res));
         Spark.awaitInitialization();
         return Spark.port();
     }
