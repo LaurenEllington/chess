@@ -5,7 +5,7 @@ import model.GameData;
 import java.util.Collection;
 import java.util.ArrayList;
 
-public class MemoryGameDao {
+public class MemoryGameDao implements GameDao{
     private static ArrayList<GameData> games = new ArrayList<GameData>();
     //not sure if games should be static yet
     public void createGame(GameData game) throws DataAccessException{
