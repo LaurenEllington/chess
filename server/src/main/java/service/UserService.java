@@ -4,6 +4,7 @@ import dataaccess.MemoryAuthDao;
 import dataaccess.MemoryUserDao;
 import model.UserData;
 import model.AuthData;
+import resultrequest.*;
 
 import java.util.ArrayList;
 
@@ -11,7 +12,7 @@ import java.util.ArrayList;
 public class UserService {
     private MemoryUserDao userDao = new MemoryUserDao();
     private MemoryAuthDao authDao = new MemoryAuthDao();
-    RegisterResult register(RegisterRequest request) throws Exception{
+    public RegisterResult register(RegisterRequest request) throws Exception{
         //verify that requested username, password, or email is not null or empty
         ArrayList<String> input = new ArrayList<String>();
         input.add(request.username());
@@ -34,7 +35,7 @@ public class UserService {
         //create result
         return new RegisterResult(user.username(),auth.authToken());
     }
-    LoginResult login(LoginRequest request) throws Exception{
+    public LoginResult login(LoginRequest request) throws Exception{
         //verify that requested username or password is not empty or null
         ArrayList<String> input = new ArrayList<String>();
         input.add(request.username());
@@ -54,24 +55,18 @@ public class UserService {
         //create result
         return new LoginResult(user.username(),auth.authToken());
     }
-    LogoutResult logout(LogoutRequest request) throws Exception{
+    public void logout(LogoutRequest request) throws Exception{
         //verify user identity
-        AuthData authorization = authorize(request.authToken());
-
-        authDao.deleteAuth(authorization);
-
-        //create result
-        return new LogoutResult();
-    }
-
-    private AuthData authorize(String authToken) throws Exception{
-        AuthData authorization = authDao.getAuth(authToken);
+        AuthData authorization = authDao.getAuth(request.authToken());
         if(authorization==null){
             //make throw unauthorized exception
             throw new Exception("Unauthorized.");
         }
-        return authorization;
+
+        authDao.deleteAuth(authorization);
     }
+
+
     private AuthData addAuthData(String username) throws Exception{
         String authToken = "";
         //figure out how to create a unique authToken?????
