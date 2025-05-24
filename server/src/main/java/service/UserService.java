@@ -29,7 +29,7 @@ public class UserService {
         userDao.createUser(user);
 
         //log in the user
-        AuthData auth = authorize(user.username());
+        AuthData auth = addAuthData(user.username());
 
         //create result
         return new RegisterResult(user.username(),auth.authToken());
@@ -49,13 +49,30 @@ public class UserService {
         }
 
         //log in the user
-        AuthData auth = authorize(user.username());
+        AuthData auth = addAuthData(user.username());
 
         //create result
         return new LoginResult(user.username(),auth.authToken());
     }
+    LogoutResult logout(LogoutRequest request) throws Exception{
+        //verify user identity
+        AuthData authorization = authorize(request.authToken());
 
-    private AuthData authorize(String username) throws Exception{
+        authDao.deleteAuth(authorization);
+
+        //create result
+        return new LogoutResult();
+    }
+
+    private AuthData authorize(String authToken) throws Exception{
+        AuthData authorization = authDao.getAuth(authToken);
+        if(authorization==null){
+            //make throw unauthorized exception
+            throw new Exception("Unauthorized.");
+        }
+        return authorization;
+    }
+    private AuthData addAuthData(String username) throws Exception{
         String authToken = "";
         //figure out how to create a unique authToken?????
         AuthData auth = new AuthData(authToken,username);
