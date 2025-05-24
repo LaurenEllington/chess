@@ -5,6 +5,7 @@ import java.util.HashSet;
 
 public class MemoryUserDao implements UserDao{
     private static HashSet<UserData> users = new HashSet<UserData>();
+    //NOTE FOR DEBUGGING: IT SAYS USERS CAN BE MADE FINAL WHEN IT DEFINITELY CANT BE AND ITS SCARING ME
     public void createUser(UserData user) throws DataAccessException{
         users.add(user);
     }
