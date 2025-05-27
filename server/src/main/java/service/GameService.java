@@ -27,7 +27,7 @@ public class GameService {
         }
 
         //verify that gamename isn't already taken
-        ArrayList<GameData> games = new ArrayList<GameData>(gameDao.listGames());
+        ArrayList<GameData> games = new ArrayList<>(gameDao.listGames());
         //debug note: make sure the collection cast works
         for(GameData game : games){
             if(game.gameName().equals(request.gameName())){
