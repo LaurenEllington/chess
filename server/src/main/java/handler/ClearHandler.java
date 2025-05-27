@@ -1,12 +1,16 @@
 package handler;
 
 import com.google.gson.JsonObject;
+import resultrequest.ClearResult;
 import service.ClearService;
+import spark.Request;
+import spark.Response;
 
-public class ClearHandler { //deal with all http communication details
-    //when request comes in (in json format) with authtoken
-    //parse into request
-    //send to service
-    //parse result into json and send back
+public class ClearHandler {
+    public static Object clearData(Request req, Response res) throws Exception {
+        ClearResult result = new ClearService().clear();
+        res.status(200);
+        return JsonHandler.serialize(result);
+    }
 
 }

@@ -1,6 +1,7 @@
 package server;
 
 import chess.*;
+import handler.ClearHandler;
 import handler.LoginHandler;
 import handler.LogoutHandler;
 import handler.RegisterHandler;
@@ -16,14 +17,10 @@ public class Server {
         //one handler for each function
         Spark.staticFiles.location("web");
         // Register your endpoints and handle exceptions here.
-        Spark.delete("/db",(req, res) -> {
-            res.status(200); //not sure if this is necessary
-            return "{}";
-        });
+        Spark.delete("/db", ClearHandler::clearData);
         Spark.delete("/session", LogoutHandler::logoutUser);
         Spark.post("/user",RegisterHandler::registerUser);
         Spark.post("/session", LoginHandler::loginUser);
-
         //login
         //create session route
         //create handler
