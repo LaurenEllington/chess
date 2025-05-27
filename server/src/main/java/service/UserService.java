@@ -7,6 +7,7 @@ import model.AuthData;
 import resultrequest.*;
 
 import java.util.ArrayList;
+import java.util.UUID;
 
 
 public class UserService {
@@ -55,7 +56,7 @@ public class UserService {
         //create result
         return new LoginResult(user.username(),auth.authToken());
     }
-    public void logout(LogoutRequest request) throws Exception{
+    public LogoutResult logout(LogoutRequest request) throws Exception{
         //verify user identity
         AuthData authorization = authDao.getAuth(request.authToken());
         if(authorization==null){
@@ -64,12 +65,12 @@ public class UserService {
         }
 
         authDao.deleteAuth(authorization);
+        return new LogoutResult();
     }
 
 
     private AuthData addAuthData(String username) throws Exception{
-        String authToken = "";
-        //figure out how to create a unique authToken?????
+        String authToken = UUID.randomUUID().toString();
         AuthData auth = new AuthData(authToken,username);
         authDao.createAuth(auth);
         return auth;
