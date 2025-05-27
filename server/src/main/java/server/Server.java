@@ -1,6 +1,8 @@
 package server;
 
 import chess.*;
+import handler.LoginHandler;
+import handler.LogoutHandler;
 import handler.RegisterHandler;
 import spark.*;
 
@@ -18,7 +20,10 @@ public class Server {
             res.status(200); //not sure if this is necessary
             return "{}";
         });
+        Spark.delete("/session", LogoutHandler::logoutUser);
         Spark.post("/user",RegisterHandler::registerUser);
+        Spark.post("/session", LoginHandler::loginUser);
+
         //login
         //create session route
         //create handler

@@ -4,6 +4,11 @@ import com.google.gson.Gson;
 import resultrequest.LogoutRequest;
 import resultrequest.LogoutResult;
 import service.UserService;
+import spark.Request;
+import spark.Response;
+
+import java.util.ArrayList;
+import java.util.Map;
 
 public class LogoutHandler {
     //get authorization header -> authtoken
@@ -11,10 +16,9 @@ public class LogoutHandler {
     //pass data to service
     //call userservice logout method
     //turn result object into json string
-    public String handleLogout(String input) throws Exception{
-        Gson gson = new Gson();
+    public static Object logoutUser(Request req, Response res) throws Exception {
+        LogoutRequest request = new LogoutRequest(req.headers("Authorization"));
         UserService service = new UserService();
-        LogoutRequest request = gson.fromJson(input, LogoutRequest.class);
         LogoutResult result = service.logout(request);
         return JsonHandler.serialize(result);
     }

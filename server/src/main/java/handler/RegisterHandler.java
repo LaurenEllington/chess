@@ -13,6 +13,5 @@ public class RegisterHandler {
         UserService service = new UserService();
         RegisterResult result = service.register(request);
         return JsonHandler.serialize(result);
-
     }
 }
