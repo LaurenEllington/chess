@@ -12,5 +12,6 @@ public class ListGamesHandler {
         GameService service = new GameService();
         ListGamesResult result = service.listGames(request);
         return JsonHandler.serialize(result);
+        //this lists way too much due to tostring of chessboard
     }
 }

@@ -43,7 +43,7 @@ public class GameService {
         //create result
         return new CreateGameResult(game.gameID());
     }
-    public void joinGame(JoinGameRequest request) throws Exception{
+    public JoinGameResult joinGame(JoinGameRequest request) throws Exception{
         AuthData authorization = authorize(request.authToken());
 
         //verify that gameID is valid and has an associated game
@@ -72,6 +72,7 @@ public class GameService {
 
         //add gamedata to database
         gameDao.updateGame(request.gameID(),newGame);
+        return new JoinGameResult();
     }
     private int generateID(){
         return 1234;
