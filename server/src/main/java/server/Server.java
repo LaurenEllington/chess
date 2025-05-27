@@ -18,10 +18,8 @@ public class Server {
         Spark.delete("/session", LogoutHandler::logoutUser);
         Spark.post("/user",RegisterHandler::registerUser);
         Spark.post("/session", LoginHandler::loginUser);
+        Spark.post("/game",CreateGameHandler::createGame);
         Spark.get("/game",ListGamesHandler::listGames);
-        //login
-        //create session route
-        //create handler
         Spark.awaitInitialization();
         return Spark.port();
     }
