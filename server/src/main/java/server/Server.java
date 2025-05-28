@@ -2,6 +2,7 @@ package server;
 
 import handler.*;
 import spark.*;
+import service.ResponseException;
 
 public class Server {
 
@@ -20,11 +21,16 @@ public class Server {
         Spark.post("/game",CreateGameHandler::createGame);
         Spark.get("/game",ListGamesHandler::listGames);
         Spark.put("/game",JoinHandler::joinGame);
+        Spark.exception(ResponseException.class,this::exceptionHandler);
         Spark.awaitInitialization();
         return Spark.port();
     }
     public void stop() {
         Spark.stop();
         Spark.awaitStop();
+    }
+    private void exceptionHandler(ResponseException e, Request req, Response res){
+        res.status(e.getStatus());
+        res.body(e.toJson());
     }
 }

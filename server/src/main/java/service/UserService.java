@@ -1,5 +1,6 @@
 package service;
 
+import dataaccess.DataAccessException;
 import dataaccess.MemoryAuthDao;
 import dataaccess.MemoryUserDao;
 import model.UserData;
@@ -13,22 +14,33 @@ import java.util.UUID;
 public class UserService {
     private MemoryUserDao userDao = new MemoryUserDao();
     private MemoryAuthDao authDao = new MemoryAuthDao();
-    public RegisterResult register(RegisterRequest request) throws Exception{
+    public RegisterResult register(RegisterRequest request) throws ResponseException{
         //verify that requested username, password, or email is not null or empty
         ArrayList<String> input = new ArrayList<String>();
         input.add(request.username());
         input.add(request.password());
         input.add(request.email());
-        verifyInput(input,"username, password, or email");
+        verifyInput(input);
 
         //verify that username isn't already taken
-        if(userDao.getUser(request.username())!=null){
-            throw new AlreadyTakenException("Username " + request.username() + " is already taken.");
+        UserData user;
+        try{
+            user = userDao.getUser(request.username());
+        } catch (DataAccessException e){
+            throw new ResponseException(e.getMessage(),500);
+        }
+        if(user!=null){
+            throw new ResponseException("Error: already taken",403);
         }
 
         //create userData object and add to database
-        UserData user = new UserData(request.username(),request.password(),request.email());
-        userDao.createUser(user);
+        user = new UserData(request.username(),request.password(),request.email());
+        try{
+            userDao.createUser(user);
+        } catch (DataAccessException e){
+            throw new ResponseException(e.getMessage(),500);
+        }
+
 
         //log in the user
         AuthData auth = addAuthData(user.username());
@@ -36,18 +48,24 @@ public class UserService {
         //create result
         return new RegisterResult(user.username(),auth.authToken());
     }
-    public LoginResult login(LoginRequest request) throws Exception{
+    public LoginResult login(LoginRequest request) throws ResponseException{
         //verify that requested username or password is not empty or null
         ArrayList<String> input = new ArrayList<String>();
         input.add(request.username());
         input.add(request.password());
-        verifyInput(input,"username or password");
+        verifyInput(input);
 
         //verify that user information is correct
-        UserData user = userDao.getUser(request.username(),request.password());
+        UserData user;
+        try {
+            user = userDao.getUser(request.username(), request.password());
+        } catch (DataAccessException e){
+            throw new ResponseException(e.getMessage(),500);
+        }
+        //if the user information is wrong
         if(user==null){
             //make throw unauthorized exception
-            throw new Exception("Unauthorized.");
+            throw new ResponseException("Error: unauthorized", 401);
         }
 
         //log in the user
@@ -69,17 +87,22 @@ public class UserService {
     }
 
 
-    private AuthData addAuthData(String username) throws Exception{
+    private AuthData addAuthData(String username) throws ResponseException{
         String authToken = UUID.randomUUID().toString();
         AuthData auth = new AuthData(authToken,username);
-        authDao.createAuth(auth);
+        try{
+            authDao.createAuth(auth);
+        } catch (DataAccessException e){
+            throw new ResponseException(e.getMessage(),500);
+        }
+
         return auth;
     }
     //make throw bad request exception
-    private void verifyInput(ArrayList<String> input, String inputType) throws Exception{
+    private void verifyInput(ArrayList<String> input) throws ResponseException{
         for(String str : input){
             if(str==null||str.isEmpty()){
-                throw new Exception("Invalid "+inputType+".");
+                throw new ResponseException("Error: bad request",400);
             }
         }
     }
