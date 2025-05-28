@@ -6,7 +6,7 @@ import java.util.Collection;
 import java.util.ArrayList;
 
 public class MemoryGameDao implements GameDao{
-    private static ArrayList<GameData> games = new ArrayList<GameData>();
+    private static ArrayList<GameData> games = new ArrayList<>();
     private static int nextID = 1;
     //not sure if games should be static yet
     public void createGame(GameData game) throws DataAccessException{
@@ -32,7 +32,7 @@ public class MemoryGameDao implements GameDao{
             }
         }
     }
-    public void deleteGame(GameData game) throws DataAccessException{
+    public void deleteGame(GameData game){
         games.remove(game);
     }
     public void clearGameData(){
