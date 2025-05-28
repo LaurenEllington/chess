@@ -1,6 +1,7 @@
 package service;
 
 import chess.ChessGame;
+import dataaccess.DataAccessException;
 import dataaccess.MemoryAuthDao;
 import dataaccess.MemoryGameDao;
 import model.AuthData;
@@ -18,27 +19,36 @@ public class GameService {
 
         return new ListGamesResult(gameDao.listGames());
     }
-    public CreateGameResult createGame(CreateGameRequest request) throws Exception{
+    public CreateGameResult createGame(CreateGameRequest request) throws ResponseException{
         authorize(request.authToken());
 
         //verify that gamename is valid
         if(request.gameName()==null||request.gameName().isEmpty()){
-            throw new Exception("Invalid gamename.");
+            throw new ResponseException("Error: bad request",400);
         }
 
         //verify that gamename isn't already taken
-        ArrayList<GameData> games = new ArrayList<>(gameDao.listGames());
+        ArrayList<GameData> games;
+        try{
+            games = new ArrayList<>(gameDao.listGames());
+        } catch (DataAccessException e){
+            throw new ResponseException(e.getMessage(),500);
+        }
         //debug note: make sure the collection cast works
         for(GameData game : games){
             if(game.gameName().equals(request.gameName())){
-                //alreadytaken exception
-                throw new Exception("Gamename already taken.");
+                throw new ResponseException("Error: bad request",400);
             }
         }
 
         //create gamedata object and add to database
         GameData game = new GameData(generateID(),null,null,request.gameName(),new ChessGame());
-        gameDao.createGame(game);
+        try{
+            gameDao.createGame(game);
+        } catch (DataAccessException e){
+            throw new ResponseException(e.getMessage(),500);
+        }
+
 
         //create result
         return new CreateGameResult(game.gameID());
@@ -77,11 +87,16 @@ public class GameService {
     private int generateID(){
         return 1234;
     }
-    private AuthData authorize(String authToken) throws Exception{
-        AuthData authorization = authDao.getAuth(authToken);
+    private AuthData authorize(String authToken) throws ResponseException{
+        AuthData authorization;
+        try{
+            authorization = authDao.getAuth(authToken);
+        } catch (DataAccessException e){
+            throw new ResponseException(e.getMessage(),500);
+        }
         if(authorization==null){
             //make throw unauthorized exception
-            throw new Exception("Unauthorized.");
+            throw new ResponseException("Error: unauthorized",401);
         }
         return authorization;
     }
