@@ -1,4 +1,4 @@
-package service;
+package java.service;
 
 import chess.ChessGame;
 import model.GameData;
@@ -7,6 +7,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Order;
 import resultrequest.*;
+import service.*;
 
 import java.util.ArrayList;
 
