@@ -74,15 +74,24 @@ public class UserService {
         //create result
         return new LoginResult(user.username(),auth.authToken());
     }
-    public LogoutResult logout(LogoutRequest request) throws Exception{
+    public LogoutResult logout(LogoutRequest request) throws ResponseException{
         //verify user identity
-        AuthData authorization = authDao.getAuth(request.authToken());
+        AuthData authorization;
+        try{
+            authorization = authDao.getAuth(request.authToken());
+        } catch (DataAccessException e){
+            throw new ResponseException(e.getMessage(),500);
+        }
         if(authorization==null){
             //make throw unauthorized exception
-            throw new Exception("Unauthorized.");
+            throw new ResponseException("Error: unauthorized",401);
+        }
+        try{
+            authDao.deleteAuth(authorization);
+        } catch (DataAccessException e){
+            throw new ResponseException(e.getMessage(),500);
         }
 
-        authDao.deleteAuth(authorization);
         return new LogoutResult();
     }
 
