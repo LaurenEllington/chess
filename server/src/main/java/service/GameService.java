@@ -8,10 +8,12 @@ import model.AuthData;
 import model.GameData;
 import resultrequest.*;
 import java.util.ArrayList;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class GameService {
     private MemoryAuthDao authDao = new MemoryAuthDao();
     private MemoryGameDao gameDao = new MemoryGameDao();
+    private AtomicInteger id = new AtomicInteger();
 
     public ListGamesResult listGames(ListGamesRequest request) throws Exception{
         //verify user identity
@@ -34,13 +36,12 @@ public class GameService {
         } catch (DataAccessException e){
             throw new ResponseException(e.getMessage(),500);
         }
-        //debug note: make sure the collection cast works
         for(GameData game : games){
             if(game.gameName().equals(request.gameName())){
                 throw new ResponseException("Error: bad request",400);
             }
         }
-
+        //it hates my id generation
         //create gamedata object and add to database
         GameData game = new GameData(generateID(),null,null,request.gameName(),new ChessGame());
         try{
@@ -48,26 +49,28 @@ public class GameService {
         } catch (DataAccessException e){
             throw new ResponseException(e.getMessage(),500);
         }
-
-
         //create result
         return new CreateGameResult(game.gameID());
     }
-    public JoinGameResult joinGame(JoinGameRequest request) throws Exception{
+    public JoinGameResult joinGame(JoinGameRequest request) throws ResponseException{
         AuthData authorization = authorize(request.authToken());
 
         //verify that gameID is valid and has an associated game
-        GameData game = gameDao.getGame(request.gameID());
-        if(game==null){
-            throw new Exception("Invalid gameID.");
+        GameData game;
+        try{
+            game = gameDao.getGame(request.gameID());
+        } catch (DataAccessException e){
+            throw new ResponseException(e.getMessage(),500);
         }
-
+        if(game==null||request.playerColor()==null){
+            throw new ResponseException("Error: bad request",400);
+        }
         //verify that requested color isn't taken
         if(request.playerColor()==ChessGame.TeamColor.BLACK&&game.blackUsername()!=null){
-            throw new AlreadyTakenException("Color already taken.");
+            throw new ResponseException("Error: bad request",400);
         }
         else if(request.playerColor()==ChessGame.TeamColor.WHITE&&game.whiteUsername()!=null){
-            throw new AlreadyTakenException("Color already taken.");
+            throw new ResponseException("Error: bad request",400);
         }
 
         //create gamedata to add requester as specified color
@@ -81,11 +84,15 @@ public class GameService {
         }
 
         //add gamedata to database
-        gameDao.updateGame(request.gameID(),newGame);
+        try{
+            gameDao.updateGame(request.gameID(),newGame);
+        } catch (DataAccessException e){
+            throw new ResponseException(e.getMessage(),500);
+        }
         return new JoinGameResult();
     }
     private int generateID(){
-        return 1234;
+        return id.incrementAndGet();
     }
     private AuthData authorize(String authToken) throws ResponseException{
         AuthData authorization;
