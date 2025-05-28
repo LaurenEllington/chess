@@ -7,6 +7,7 @@ import java.util.ArrayList;
 
 public class MemoryGameDao implements GameDao{
     private static ArrayList<GameData> games = new ArrayList<GameData>();
+    private static int nextID = 1;
     //not sure if games should be static yet
     public void createGame(GameData game) throws DataAccessException{
         games.add(game);
@@ -36,5 +37,8 @@ public class MemoryGameDao implements GameDao{
     }
     public void clearGameData(){
         games.clear();
+    }
+    public int nextID(){
+        return nextID++;
     }
 }

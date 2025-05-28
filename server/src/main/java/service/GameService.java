@@ -8,12 +8,10 @@ import model.AuthData;
 import model.GameData;
 import resultrequest.*;
 import java.util.ArrayList;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class GameService {
     private MemoryAuthDao authDao = new MemoryAuthDao();
     private MemoryGameDao gameDao = new MemoryGameDao();
-    private AtomicInteger id = new AtomicInteger();
 
     public ListGamesResult listGames(ListGamesRequest request) throws Exception{
         //verify user identity
@@ -67,10 +65,10 @@ public class GameService {
         }
         //verify that requested color isn't taken
         if(request.playerColor()==ChessGame.TeamColor.BLACK&&game.blackUsername()!=null){
-            throw new ResponseException("Error: bad request",400);
+            throw new ResponseException("Error: forbidden",403);
         }
         else if(request.playerColor()==ChessGame.TeamColor.WHITE&&game.whiteUsername()!=null){
-            throw new ResponseException("Error: bad request",400);
+            throw new ResponseException("Error: forbidden",403);
         }
 
         //create gamedata to add requester as specified color
@@ -92,7 +90,7 @@ public class GameService {
         return new JoinGameResult();
     }
     private int generateID(){
-        return id.incrementAndGet();
+        return gameDao.nextID();
     }
     private AuthData authorize(String authToken) throws ResponseException{
         AuthData authorization;
