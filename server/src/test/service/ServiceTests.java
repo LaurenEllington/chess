@@ -84,7 +84,7 @@ public class ServiceTests {
     @Test
     @Order(7)
     @DisplayName("Successful Create Game")
-    public void CreateGameSuccess() {
+    public void createGameSuccess() {
         RegisterResult result = registerUser();
         CreateGameResult gameResult = Assertions.assertDoesNotThrow( () ->
                 createGame(result.authToken()));
@@ -94,7 +94,7 @@ public class ServiceTests {
     @Test
     @Order(8)
     @DisplayName("Unsuccessful Create Game")
-    public void CreateGameFailure() {
+    public void createGameFailure() {
         //no game name provided
         RegisterResult result = registerUser();
         Assertions.assertThrows(ResponseException.class,() ->
@@ -105,7 +105,7 @@ public class ServiceTests {
     @Test
     @Order(9)
     @DisplayName("Successful Join Game")
-    public void JoinGameSuccess() {
+    public void joinGameSuccess() {
         RegisterResult result = registerUser();
         CreateGameResult gameResult = createGame(result.authToken());
         JoinGameRequest joinReq = new JoinGameRequest(ChessGame.TeamColor.WHITE,gameResult.gameID(),result.authToken());
@@ -116,7 +116,7 @@ public class ServiceTests {
     @Test
     @Order(10)
     @DisplayName("Unsuccessful Join Game")
-    public void JoinGameFailure() {
+    public void joinGameFailure() {
         //no player color provided
         RegisterResult result = registerUser();
         CreateGameResult gameResult = createGame(result.authToken());
@@ -127,7 +127,7 @@ public class ServiceTests {
     @Test
     @Order(11)
     @DisplayName("Successful List Games")
-    public void ListGameSuccess() {
+    public void listGameSuccess() {
         RegisterResult result = registerUser();
         CreateGameResult gameResult = createGame(result.authToken());
         ListGamesResult listResult = Assertions.assertDoesNotThrow( () ->
@@ -140,7 +140,7 @@ public class ServiceTests {
     @Test
     @Order(12)
     @DisplayName("Unsuccessful List Games")
-    public void ListGameFailure() {
+    public void listGameFailure() {
         RegisterResult result = registerUser();
         GameService gameService = new GameService();
         Assertions.assertThrows(ResponseException.class,() ->
@@ -150,7 +150,7 @@ public class ServiceTests {
     @Test
     @Order(13)
     @DisplayName("Successful Clear")
-    public void ClearSuccess() {
+    public void clearSuccess() {
         RegisterResult result = registerUser();
         Assertions.assertDoesNotThrow(()->new ClearService().clear());
         Assertions.assertThrows(ResponseException.class,()->
