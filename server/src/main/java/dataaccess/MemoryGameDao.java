@@ -32,9 +32,6 @@ public class MemoryGameDao implements GameDao{
             }
         }
     }
-    public void deleteGame(GameData game){
-        games.remove(game);
-    }
     public void clearGameData(){
         games.clear();
     }

@@ -4,8 +4,7 @@ import model.UserData;
 import java.util.HashSet;
 
 public class MemoryUserDao implements UserDao{
-    private static HashSet<UserData> users = new HashSet<UserData>();
-    //NOTE FOR DEBUGGING: IT SAYS USERS CAN BE MADE FINAL WHEN IT DEFINITELY CANT BE AND ITS SCARING ME
+    private static HashSet<UserData> users = new HashSet<>();
     public void createUser(UserData user) throws DataAccessException{
         users.add(user);
     }
@@ -24,9 +23,6 @@ public class MemoryUserDao implements UserDao{
             }
         }
         return null;
-    }
-    public void deleteUser(String username) throws DataAccessException{
-        users.remove(getUser(username));
     }
     public void clearUserData(){
         users.clear();
