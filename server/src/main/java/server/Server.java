@@ -43,9 +43,12 @@ public class Server {
             Spark.post("/user", registerHandler::registerUser);
             LoginHandler loginHandler = new LoginHandler(daos);
             Spark.post("/session", loginHandler::loginUser);
-            Spark.post("/game", CreateGameHandler::createGame);
-            Spark.get("/game", ListGamesHandler::listGames);
-            Spark.put("/game", JoinHandler::joinGame);
+            CreateGameHandler createGameHandler = new CreateGameHandler(daos);
+            Spark.post("/game", createGameHandler::createGame);
+            ListGamesHandler listGamesHandler = new ListGamesHandler(daos);
+            Spark.get("/game", listGamesHandler::listGames);
+            JoinHandler joinHandler = new JoinHandler(daos);
+            Spark.put("/game", joinHandler::joinGame);
             Spark.exception(ResponseException.class, this::exceptionHandler);
             Spark.awaitInitialization();
             return Spark.port();

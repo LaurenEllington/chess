@@ -7,17 +7,21 @@ import dataaccess.MemoryGameDao;
 import model.AuthData;
 import model.GameData;
 import resultrequest.*;
+import server.DataAccessClasses;
+
 import java.util.ArrayList;
 
 public class GameService {
-    private MemoryAuthDao authDao = new MemoryAuthDao();
-    private MemoryGameDao gameDao = new MemoryGameDao();
+    private DataAccessClasses daos;
+    public GameService(DataAccessClasses daos){
+        this.daos=daos;
+    }
 
     public ListGamesResult listGames(ListGamesRequest request) throws Exception{
         //verify user identity
         authorize(request.authToken());
 
-        return new ListGamesResult(gameDao.listGames());
+        return new ListGamesResult(daos.gameDao().listGames());
     }
     public CreateGameResult createGame(CreateGameRequest request) throws ResponseException{
         authorize(request.authToken());
@@ -30,7 +34,7 @@ public class GameService {
         //verify that gamename isn't already taken
         ArrayList<GameData> games;
         try{
-            games = new ArrayList<>(gameDao.listGames());
+            games = new ArrayList<>(daos.gameDao().listGames());
         } catch (DataAccessException e){
             throw new ResponseException(e.getMessage(),500);
         }
@@ -43,7 +47,7 @@ public class GameService {
         //create gamedata object and add to database
         GameData game = new GameData(generateID(),null,null,request.gameName(),new ChessGame());
         try{
-            gameDao.createGame(game);
+            daos.gameDao().createGame(game);
         } catch (DataAccessException e){
             throw new ResponseException(e.getMessage(),500);
         }
@@ -56,7 +60,7 @@ public class GameService {
         //verify that gameID is valid and has an associated game
         GameData game;
         try{
-            game = gameDao.getGame(request.gameID());
+            game = daos.gameDao().getGame(request.gameID());
         } catch (DataAccessException e){
             throw new ResponseException(e.getMessage(),500);
         }
@@ -83,19 +87,19 @@ public class GameService {
 
         //add gamedata to database
         try{
-            gameDao.updateGame(request.gameID(),newGame);
+            daos.gameDao().updateGame(request.gameID(),newGame);
         } catch (DataAccessException e){
             throw new ResponseException(e.getMessage(),500);
         }
         return new JoinGameResult();
     }
     private int generateID(){
-        return gameDao.nextID();
+        return daos.gameDao().nextID();
     }
     private AuthData authorize(String authToken) throws ResponseException{
         AuthData authorization;
         try{
-            authorization = authDao.getAuth(authToken);
+            authorization = daos.authDao().getAuth(authToken);
         } catch (DataAccessException e){
             throw new ResponseException(e.getMessage(),500);
         }
