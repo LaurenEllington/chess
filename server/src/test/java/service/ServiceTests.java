@@ -1,19 +1,24 @@
 package java.service;
 
 import chess.ChessGame;
+import dataaccess.MemoryAuthDao;
+import dataaccess.MemoryGameDao;
+import dataaccess.MemoryUserDao;
 import model.GameData;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Order;
 import resultrequest.*;
+import server.DataAccessClasses;
 import service.*;
 
 import java.util.ArrayList;
 
 public class ServiceTests {
-    ClearService clearService = new ClearService();
-    UserService userService = new UserService();
+    DataAccessClasses daos = new DataAccessClasses(new MemoryUserDao(),new MemoryGameDao(), new MemoryAuthDao());
+    ClearService clearService = new ClearService(daos);
+    UserService userService = new UserService(daos);
     GameService gameService = new GameService();
     @Test
     @Order(1)
@@ -153,7 +158,7 @@ public class ServiceTests {
     @DisplayName("Successful Clear")
     public void clearSuccess() {
         RegisterResult result = registerUser();
-        Assertions.assertDoesNotThrow(()->new ClearService().clear());
+        Assertions.assertDoesNotThrow(()->new ClearService(daos).clear());
         Assertions.assertThrows(ResponseException.class,()->
                 userService.login(new LoginRequest(result.username(),"testpassword")));
     }

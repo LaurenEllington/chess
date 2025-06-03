@@ -2,19 +2,21 @@ package service;
 
 import dataaccess.*;
 import resultrequest.ClearResult;
+import server.DataAccessClasses;
 
 public class ClearService {
-    private MemoryAuthDao authDao = new MemoryAuthDao();
-    private MemoryGameDao gameDao = new MemoryGameDao();
-    private MemoryUserDao userDao = new MemoryUserDao();
+    private DataAccessClasses daos;
+    public ClearService(DataAccessClasses daos){
+        this.daos=daos;
+    }
     public ClearResult clear() throws ResponseException{
         try{
-            authDao.clearAuthData();
+            daos.authDao().clearAuthData();
         } catch (DataAccessException e){
             throw new ResponseException(e.getMessage(),500);
         }
-        gameDao.clearGameData();
-        userDao.clearUserData();
+        daos.gameDao().clearGameData();
+        daos.userDao().clearUserData();
         return new ClearResult();
     }
 }

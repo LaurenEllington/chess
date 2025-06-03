@@ -6,14 +6,17 @@ import dataaccess.MemoryUserDao;
 import model.UserData;
 import model.AuthData;
 import resultrequest.*;
+import server.DataAccessClasses;
 
 import java.util.ArrayList;
 import java.util.UUID;
 
 
 public class UserService {
-    private MemoryUserDao userDao = new MemoryUserDao();
-    private MemoryAuthDao authDao = new MemoryAuthDao();
+    private DataAccessClasses daos;
+    public UserService(DataAccessClasses daos){
+        this.daos=daos;
+    }
     public RegisterResult register(RegisterRequest request) throws ResponseException{
         //verify that requested username, password, or email is not null or empty
         ArrayList<String> input = new ArrayList<String>();
@@ -25,7 +28,7 @@ public class UserService {
         //verify that username isn't already taken
         UserData user;
         try{
-            user = userDao.getUser(request.username());
+            user = daos.userDao().getUser(request.username());
         } catch (DataAccessException e){
             throw new ResponseException(e.getMessage(),500);
         }
@@ -36,7 +39,7 @@ public class UserService {
         //create userData object and add to database
         user = new UserData(request.username(),request.password(),request.email());
         try{
-            userDao.createUser(user);
+            daos.userDao().createUser(user);
         } catch (DataAccessException e){
             throw new ResponseException(e.getMessage(),500);
         }
@@ -58,7 +61,7 @@ public class UserService {
         //verify that user information is correct
         UserData user;
         try {
-            user = userDao.getUser(request.username(), request.password());
+            user = daos.userDao().getUser(request.username(), request.password());
         } catch (DataAccessException e){
             throw new ResponseException(e.getMessage(),500);
         }
@@ -78,7 +81,7 @@ public class UserService {
         //verify user identity
         AuthData authorization;
         try{
-            authorization = authDao.getAuth(request.authToken());
+            authorization = daos.authDao().getAuth(request.authToken());
         } catch (DataAccessException e){
             throw new ResponseException(e.getMessage(),500);
         }
@@ -87,7 +90,7 @@ public class UserService {
             throw new ResponseException("Error: unauthorized",401);
         }
         try{
-            authDao.deleteAuth(authorization);
+            daos.authDao().deleteAuth(authorization);
         } catch (DataAccessException e){
             throw new ResponseException(e.getMessage(),500);
         }
@@ -100,7 +103,7 @@ public class UserService {
         String authToken = UUID.randomUUID().toString();
         AuthData auth = new AuthData(authToken,username);
         try{
-            authDao.createAuth(auth);
+            daos.authDao().createAuth(auth);
         } catch (DataAccessException e){
             throw new ResponseException(e.getMessage(),500);
         }
