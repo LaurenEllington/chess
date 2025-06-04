@@ -3,6 +3,7 @@ package dataaccess;
 import java.sql.*;
 import java.util.Properties;
 
+
 public class DatabaseManager {
     private static String databaseName;
     private static String dbUsername;
@@ -30,7 +31,7 @@ public class DatabaseManager {
     }
     static private final String[] createStatements = {
             """
-            CREATE TABLE IF NOT EXISTS `user` (
+            CREATE TABLE IF NOT EXISTS user (
               `username` varchar(256) NOT NULL,
               `password` varchar(256) NOT NULL,
               `email` varchar(256) NOT NULL,
@@ -38,10 +39,21 @@ public class DatabaseManager {
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
             """,
             """
-            CREATE TABLE IF NOT EXISTS `auth` (
+            CREATE TABLE IF NOT EXISTS auth (
               `authToken` varchar(256) NOT NULL,
               `username` varchar(256) NOT NULL,
               PRIMARY KEY (`authToken`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
+            """,
+            """
+            CREATE TABLE IF NOT EXISTS game (
+              `gameID` int NOT NULL AUTO_INCREMENT,
+              `whiteUsername` varchar(256) DEFAULT NULL,
+              `blackUsername` varchar(256) DEFAULT NULL,
+              `gameName` varchar(256) NOT NULL,
+              `chessGame` TEXT DEFAULT NULL,
+              PRIMARY KEY (`gameID`),
+              INDEX(gameName)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
             """
     };

@@ -19,7 +19,7 @@ public class ServiceTests {
     DataAccessClasses daos = new DataAccessClasses(new MemoryUserDao(),new MemoryGameDao(), new MemoryAuthDao());
     ClearService clearService = new ClearService(daos);
     UserService userService = new UserService(daos);
-    GameService gameService = new GameService();
+    GameService gameService = new GameService(daos);
     @Test
     @Order(1)
     @DisplayName("Valid User Registration")
@@ -148,7 +148,7 @@ public class ServiceTests {
     @DisplayName("Unsuccessful List Games")
     public void listGameFailure() {
         RegisterResult result = registerUser();
-        GameService gameService = new GameService();
+        GameService gameService = new GameService(daos);
         Assertions.assertThrows(ResponseException.class,() ->
                 gameService.listGames(new ListGamesRequest("")));
         clearService.clear();
