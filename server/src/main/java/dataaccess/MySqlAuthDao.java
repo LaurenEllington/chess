@@ -1,23 +1,40 @@
 package dataaccess;
 
-import chess.ChessGame;
 import model.AuthData;
-import model.UserData;
 import service.ResponseException;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 
 public class MySqlAuthDao implements AuthDao{
     public void createAuth(AuthData a) throws DataAccessException{
+        try (var conn = DatabaseManager.getConnection()) {
+            var statement = "INSERT INTO auth (authToken, username) VALUES (?, ?)";
+            executeUpdate(statement, a.authToken(), a.username());
+        } catch (Exception e){
+            throw new DataAccessException(e.getMessage());
+        }
     }
     public AuthData getAuth(String authToken) throws DataAccessException{
-        return null;
+        try (var conn = DatabaseManager.getConnection()) {
+            var statement = "SELECT username, authToken FROM auth WHERE authToken=?";
+            return executeUpdate(statement,authToken);
+        }
+        catch (SQLException e){
+            throw new DataAccessException(e.getMessage());
+        }
     }
     public void deleteAuth(AuthData a) throws DataAccessException{
+        try (var conn = DatabaseManager.getConnection()) {
+            var statement = "DELETE FROM auth WHERE authToken=?";
+            executeUpdate(statement, a.authToken());
+        } catch (Exception e){
+            throw new DataAccessException(e.getMessage());
+        }
     }
     public void clearAuthData() throws DataAccessException{
-        var statement = "TRUNCATE user";
+        var statement = "TRUNCATE auth";
         executeUpdate(statement);
     }
     private AuthData executeUpdate(String statement, String... params) throws ResponseException {

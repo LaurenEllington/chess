@@ -13,7 +13,7 @@ public class MySqlUserDao implements UserDao{
     }
     public void createUser(UserData user) throws DataAccessException{
         try (var conn = DatabaseManager.getConnection()) {
-            var statement = "INSERT INTO user (name, password, email) VALUES (?, ?, ?)";
+            var statement = "INSERT INTO user (username, password, email) VALUES (?, ?, ?)";
             executeUpdate(statement,user.username(),user.password(),user.email());
         } catch (Exception e){
             throw new DataAccessException(e.getMessage());

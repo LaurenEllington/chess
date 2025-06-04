@@ -94,7 +94,7 @@ public class GameService {
         return new JoinGameResult();
     }
     private int generateID(){
-        return daos.gameDao().nextID();
+        return daos.gameDao().getID();
     }
     private AuthData authorize(String authToken) throws ResponseException{
         AuthData authorization;

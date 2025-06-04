@@ -35,7 +35,7 @@ public class MemoryGameDao implements GameDao{
     public void clearGameData(){
         games.clear();
     }
-    public int nextID(){
+    public int getID(){
         return nextID++;
     }
 }
