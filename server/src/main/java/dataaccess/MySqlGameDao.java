@@ -22,7 +22,9 @@ public class MySqlGameDao implements GameDao{
             try(PreparedStatement stmt = conn.prepareStatement(statement, RETURN_GENERATED_KEYS)){
                 setColorUsername(stmt,1,game.whiteUsername());
                 setColorUsername(stmt,2,game.blackUsername());
-                stmt.executeQuery();
+                stmt.setString(3,game.gameName());
+                stmt.setString(4,JsonHandler.serialize(game.game()));
+                stmt.executeUpdate();
                 ResultSet keys = stmt.getGeneratedKeys();
                 keys.next();
                 return keys.getInt(1);

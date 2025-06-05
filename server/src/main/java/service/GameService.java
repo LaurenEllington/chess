@@ -31,25 +31,30 @@ public class GameService {
 
         //verify that gamename isn't already taken
         ArrayList<GameData> games;
+
         try{
-            games = new ArrayList<>(daos.gameDao().listGames());
+            if (daos.gameDao().listGames()!=null){
+                games = new ArrayList<>(daos.gameDao().listGames());
+                for(GameData game : games){
+                    if(game.gameName().equals(request.gameName())){
+                        throw new ResponseException("Error: bad request",400);
+                    }
+                }
+            }
         } catch (DataAccessException e){
             throw new ResponseException(e.getMessage(),500);
         }
-        for(GameData game : games){
-            if(game.gameName().equals(request.gameName())){
-                throw new ResponseException("Error: bad request",400);
-            }
-        }
+
         //create gamedata object and add to database
         GameData game = new GameData(generateID(),null,null,request.gameName(),new ChessGame());
+        var gameID = 0;
         try{
-            daos.gameDao().createGame(game);
+            gameID = daos.gameDao().createGame(game);
         } catch (DataAccessException e){
             throw new ResponseException(e.getMessage(),500);
         }
         //create result
-        return new CreateGameResult(game.gameID());
+        return new CreateGameResult(gameID);
     }
     public JoinGameResult joinGame(JoinGameRequest request) throws ResponseException{
         AuthData authorization = authorize(request.authToken());
