@@ -11,32 +11,17 @@ public class MySqlUserDao implements UserDao{
     public MySqlUserDao() throws DataAccessException{
         DatabaseManager.configureDatabase();
     }
-    public void createUser(UserData user) throws DataAccessException{
-        try (var conn = DatabaseManager.getConnection()) {
-            var statement = "INSERT INTO user (username, password, email) VALUES (?, ?, ?)";
-            executeUpdate(statement,user.username(),user.password(),user.email());
-        } catch (Exception e){
-            throw new DataAccessException(e.getMessage());
-        }
-
+    public void createUser(UserData user){
+        var statement = "INSERT INTO user (username, password, email) VALUES (?, ?, ?)";
+        executeUpdate(statement,user.username(),user.password(),user.email());
     }
-    public UserData getUser(String username) throws DataAccessException{
-        try (var conn = DatabaseManager.getConnection()) {
-            var statement = "SELECT username FROM user WHERE user.username=?";
-            return executeUpdate(statement,username);
-        }
-        catch (SQLException e){
-            throw new DataAccessException(e.getMessage());
-        }
+    public UserData getUser(String username){
+        var statement = "SELECT username FROM user WHERE user.username=?";
+        return executeUpdate(statement,username);
     }
-    public UserData getUser(String username, String password) throws DataAccessException{
-        try (var conn = DatabaseManager.getConnection()) {
-            var statement = "SELECT username FROM user WHERE user.username=? AND user.password=?";
-            return executeUpdate(statement,username,password);
-        }
-        catch (SQLException e){
-            throw new DataAccessException(e.getMessage());
-        }
+    public UserData getUser(String username, String password){
+        var statement = "SELECT username FROM user WHERE user.username=? AND user.password=?";
+        return executeUpdate(statement,username,password);
     }
     public void clearUserData(){
         var statement = "TRUNCATE user";
@@ -49,11 +34,11 @@ public class MySqlUserDao implements UserDao{
                     stmt.setString(i+1,params[i]);
                 }
                 ResultSet rs = stmt.executeQuery();
-                if(rs.wasNull()){
-                    return null;
+                if(rs.next()){
+                    return new UserData(
+                            rs.getString(1),rs.getString(2),rs.getString(3));
                 }
-                return new UserData(
-                        rs.getString(1),rs.getString(2),rs.getString(3));
+                return null;
             }
         } catch (Exception e){
             throw new ResponseException(String.format("unable to update database: %s, %s", statement, e.getMessage()),500);
