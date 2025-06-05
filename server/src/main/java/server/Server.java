@@ -6,7 +6,6 @@ import spark.*;
 import service.ResponseException;
 
 public class Server {
-    private DataAccessClasses daos;
     private final String dataAccessType;
     public Server(String dataAccessType){
         this.dataAccessType=dataAccessType;
@@ -28,8 +27,9 @@ public class Server {
         //once handlers are created, listen for incoming requests
         //figure out what kind of request is being called then forward the request to handler objects to process them
         //one handler for each function
+        DataAccessClasses daos;
         try {
-            DataAccessClasses daos = getDaos();
+            daos = getDaos();
         } catch (DataAccessException e) {
             throw new ResponseException(e.getMessage(),500);
         }
