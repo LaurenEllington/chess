@@ -2,8 +2,6 @@ package service;
 
 import chess.ChessGame;
 import dataaccess.DataAccessException;
-import dataaccess.MemoryAuthDao;
-import dataaccess.MemoryGameDao;
 import model.AuthData;
 import model.GameData;
 import resultrequest.*;
@@ -43,7 +41,6 @@ public class GameService {
                 throw new ResponseException("Error: bad request",400);
             }
         }
-        //it hates my id generation
         //create gamedata object and add to database
         GameData game = new GameData(generateID(),null,null,request.gameName(),new ChessGame());
         try{

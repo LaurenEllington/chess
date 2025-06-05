@@ -14,13 +14,13 @@ import static java.sql.Statement.RETURN_GENERATED_KEYS;
 import static java.sql.Types.NULL;
 
 public class MySqlGameDao implements GameDao{
-    private int nextId=1;
-    public void createGame(GameData game) throws DataAccessException{
+    public int createGame(GameData game) throws DataAccessException{
         try (var conn = DatabaseManager.getConnection()) {
-            var statement = "INSERT INTO game (gameID, whiteUsername, blackUsername, gameName, chessGame) VALUES (?, ?, ?, ?, ?)";
+            var statement = "INSERT INTO game (whiteUsername, blackUsername, gameName, chessGame) VALUES (?, ?, ?, ?)";
             //autoincrement gameID and save into nextID
-            executeUpdate(statement,nextId,game.whiteUsername(),game.blackUsername(),game.gameName(),game.game());
+            int gameId = executeUpdate(statement,game.whiteUsername(),game.blackUsername(),game.gameName(),game.game());
             //maybe turn chessgame into json (in update) if that will make it easier to revert back
+            return gameId;
         } catch (Exception e){
             throw new DataAccessException(e.getMessage());
         }
@@ -36,6 +36,7 @@ public class MySqlGameDao implements GameDao{
                         rs.getString(4),new ChessGame());
             }           //new ChessGame/rs.getString(5) is a placeholder for however im supposed to make
                         //a string -> chessgame
+                        //probably use json
         }
         catch (SQLException e){
             throw new DataAccessException(e.getMessage());
@@ -47,7 +48,7 @@ public class MySqlGameDao implements GameDao{
     public void updateGame(int gameID, GameData game) throws DataAccessException{
         try (var conn = DatabaseManager.getConnection()) {
             var statement = "UPDATE game set whiteUsername=?, blackUsername=?, gameName=?, chessGame=? where gameID=?";
-            nextId = executeUpdate(statement,game.whiteUsername(),game.blackUsername(),game.gameName(),game.game(),gameID)+1;
+            executeUpdate(statement,game.whiteUsername(),game.blackUsername(),game.gameName(),game.game(),gameID);
         } catch (Exception e){
             throw new DataAccessException(e.getMessage());
         }
@@ -58,7 +59,7 @@ public class MySqlGameDao implements GameDao{
         executeUpdate(statement);
     }
     public int getID(){
-        return nextId;
+        return 0;
     }
     private int executeUpdate(String statement, Object... params) throws ResponseException {
         try(var conn = DatabaseManager.getConnection()){

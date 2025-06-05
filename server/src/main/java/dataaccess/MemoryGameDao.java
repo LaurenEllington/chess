@@ -9,8 +9,9 @@ public class MemoryGameDao implements GameDao{
     private static ArrayList<GameData> games = new ArrayList<>();
     private static int nextID = 1;
     //not sure if games should be static yet
-    public void createGame(GameData game) throws DataAccessException{
+    public int createGame(GameData game) throws DataAccessException{
         games.add(game);
+        return game.gameID();
     }
     public GameData getGame(int gameID) throws DataAccessException{
         for(GameData game : games){
