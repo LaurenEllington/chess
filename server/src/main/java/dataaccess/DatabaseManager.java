@@ -42,7 +42,8 @@ public class DatabaseManager {
             CREATE TABLE IF NOT EXISTS auth (
               `authToken` varchar(256) NOT NULL,
               `username` varchar(256) NOT NULL,
-              PRIMARY KEY (`authToken`)
+              PRIMARY KEY (`authToken`),
+              UNIQUE KEY `username_UNIQUE` (`username`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
             """,
             """
@@ -53,7 +54,8 @@ public class DatabaseManager {
               `gameName` varchar(256) NOT NULL,
               `chessGame` TEXT DEFAULT NULL,
               PRIMARY KEY (`gameID`),
-              INDEX(gameName)
+              INDEX(gameName),
+              UNIQUE KEY `gameName_UNIQUE` (`gameName`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
             """
     };

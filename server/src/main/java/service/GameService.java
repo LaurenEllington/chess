@@ -95,11 +95,7 @@ public class GameService {
     }
     private AuthData authorize(String authToken) throws ResponseException{
         AuthData authorization;
-        try{
-            authorization = daos.authDao().getAuth(authToken);
-        } catch (DataAccessException e){
-            throw new ResponseException(e.getMessage(),500);
-        }
+        authorization = daos.authDao().getAuth(authToken);
         if(authorization==null){
             //make throw unauthorized exception
             throw new ResponseException("Error: unauthorized",401);

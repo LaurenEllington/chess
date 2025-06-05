@@ -1,6 +1,5 @@
 package service;
 
-import dataaccess.*;
 import resultrequest.ClearResult;
 import server.DataAccessClasses;
 
@@ -10,11 +9,7 @@ public class ClearService {
         this.daos=daos;
     }
     public ClearResult clear() throws ResponseException{
-        try{
-            daos.authDao().clearAuthData();
-        } catch (DataAccessException e){
-            throw new ResponseException(e.getMessage(),500);
-        }
+        daos.authDao().clearAuthData();
         daos.gameDao().clearGameData();
         daos.userDao().clearUserData();
         return new ClearResult();

@@ -18,12 +18,12 @@ public class MySqlUserDao implements UserDao{
         executeUpdate(statement, false, user.username(),hash,user.email());
     }
     public UserData getUser(String username){
-        var statement = "SELECT username FROM user WHERE username=?";
+        var statement = "SELECT username, password, email FROM user WHERE username=?";
         return executeUpdate(statement, true, username);
     }
     public UserData getUser(String username, String password){
         var user = getUser(username);
-        if (BCrypt.checkpw(password,user.password())){
+        if (user!=null && BCrypt.checkpw(password,user.password())){
             return user;
         }
         return null;

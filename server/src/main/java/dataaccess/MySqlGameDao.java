@@ -18,23 +18,23 @@ import static java.sql.Types.NULL;
 public class MySqlGameDao implements GameDao{
     public int createGame(GameData game) throws DataAccessException{
         var statement = "INSERT INTO game (whiteUsername, blackUsername, gameName, chessGame) VALUES (?, ?, ?, ?)";
-        return executeUpdate(statement,game.whiteUsername(),game.blackUsername(),game.gameName(),game.game());
-    }
-    public GameData getGame(int gameID) throws DataAccessException{
-        try (var conn = DatabaseManager.getConnection()) {
-            var statement = "SELECT gameID, whiteUsername, blackUsername, gameName, chessGame FROM game WHERE game.gameID=?";
-            try(PreparedStatement stmt = conn.prepareStatement(statement)){
-                stmt.setInt(1, gameID);
-                ResultSet rs = stmt.executeQuery();
-                if(rs.next()){
-                    return readGame(rs);
-                }
-                return null;
+        try(var conn = DatabaseManager.getConnection()){
+            try(PreparedStatement stmt = conn.prepareStatement(statement, RETURN_GENERATED_KEYS)){
+                setColorUsername(stmt,1,game.whiteUsername());
+                setColorUsername(stmt,2,game.blackUsername());
+                stmt.executeQuery();
+                ResultSet keys = stmt.getGeneratedKeys();
+                keys.next();
+                return keys.getInt(1);
             }
+        } catch (Exception e){
+            throw new DataAccessException(
+                    String.format("unable to insert into database: %s, %s", statement, e.getMessage()));
         }
-        catch (SQLException e){
-            throw new DataAccessException(e.getMessage());
-        }
+    }
+    public GameData getGame(int gameID){
+        var statement = "SELECT gameID, whiteUsername, blackUsername, gameName, chessGame FROM game WHERE gameID=?";
+        return executeUpdate(statement, true, gameID);
     }
     public Collection<GameData> listGames() throws DataAccessException{
         var result = new ArrayList<GameData>();
@@ -57,23 +57,56 @@ public class MySqlGameDao implements GameDao{
     }
     public void updateGame(int gameID, GameData game){
         var statement = "UPDATE game set whiteUsername=?, blackUsername=?, gameName=?, chessGame=? where gameID=?";
-        executeUpdate(statement,game.whiteUsername(),game.blackUsername(),game.gameName(),game.game(),gameID);
+        executeUpdate(statement, false, game.whiteUsername(),game.blackUsername(),game.gameName(),game.game(),gameID);
     }
 
     public void clearGameData(){
         var statement = "TRUNCATE game";
-        executeUpdate(statement);
+        executeUpdate(statement, false);
     }
     public int getID(){
         return 0;
     }
+    private void setColorUsername(PreparedStatement stmt, int index, String colorUsername) throws SQLException{
+        if (colorUsername == null) {
+            stmt.setNull(index, NULL);
+        } else {
+            stmt.setString(index, colorUsername);
+        }
+    }
+    //make sure that rs.getString on a string set to null gives the right value
     private GameData readGame(ResultSet rs) throws SQLException{
         var game = new Gson().fromJson(rs.getString(5), ChessGame.class);
         return new GameData(
                 rs.getInt(1),rs.getString(2),rs.getString(3),
                 rs.getString(4), game);
     }
-    private int executeUpdate(String statement, Object... params) throws ResponseException {
+    //works for update, clear, get
+    private GameData executeUpdate(String statement, boolean query, Object... params) throws ResponseException {
+        try(var conn = DatabaseManager.getConnection()){
+            try(PreparedStatement stmt = conn.prepareStatement(statement)){
+                for(int i = 0; i<params.length;i++){
+                    var param = params[i];
+                    if(param instanceof String p) stmt.setString(i+1,p);
+                    else if(param instanceof Integer p) stmt.setInt(i+1,p);
+                    else if(param instanceof ChessGame p) stmt.setString(i+1, JsonHandler.serialize(p));
+                    else if(param == null) stmt.setNull(i+1,NULL);
+                }
+                if (query){
+                    ResultSet rs = stmt.executeQuery();
+                    return readGame(rs);
+                }
+                else{
+                    stmt.executeUpdate();
+                }
+                return null;
+            }
+        } catch (Exception e){
+            throw new ResponseException(String.format("unable to update database: %s, %s", statement, e.getMessage()),500);
+        }
+    }
+    /*
+    private GameData executeUpdate(String statement, boolean query, Object... params) throws ResponseException {
         try(var conn = DatabaseManager.getConnection()){
             try(PreparedStatement stmt = conn.prepareStatement(statement, PreparedStatement.RETURN_GENERATED_KEYS)){
                 for(int i = 0; i<params.length;i++){
@@ -83,15 +116,21 @@ public class MySqlGameDao implements GameDao{
                     else if(param instanceof ChessGame p) stmt.setString(i+1, JsonHandler.serialize(p));
                     else if(param == null) stmt.setNull(i+1,NULL);
                 }
-                stmt.executeQuery();
-                ResultSet rs = stmt.getGeneratedKeys();
-                if (rs.next()){
-                    return rs.getInt(1);
+                if (query){
+                    stmt.executeQuery();
+                    ResultSet keys = stmt.getGeneratedKeys();
+                    if (keys.next()){
+                        return keys.getInt(1);
+                    }
                 }
-                return 0;
+                else{
+                    stmt.executeUpdate();
+                }
+                return null;
             }
         } catch (Exception e){
             throw new ResponseException(String.format("unable to update database: %s, %s", statement, e.getMessage()),500);
         }
     }
+     */
 }

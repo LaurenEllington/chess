@@ -1,8 +1,5 @@
 package service;
 
-import dataaccess.DataAccessException;
-import dataaccess.MemoryAuthDao;
-import dataaccess.MemoryUserDao;
 import model.UserData;
 import model.AuthData;
 import resultrequest.*;
@@ -26,23 +23,14 @@ public class UserService {
         verifyInput(input);
 
         //verify that username isn't already taken
-        UserData user;
-        try{
-            user = daos.userDao().getUser(request.username());
-        } catch (DataAccessException e){
-            throw new ResponseException(e.getMessage(),500);
-        }
+        var user = daos.userDao().getUser(request.username());
         if(user!=null){
             throw new ResponseException("Error: already taken",403);
         }
 
         //create userData object and add to database
         user = new UserData(request.username(),request.password(),request.email());
-        try{
-            daos.userDao().createUser(user);
-        } catch (DataAccessException e){
-            throw new ResponseException(e.getMessage(),500);
-        }
+        daos.userDao().createUser(user);
 
 
         //log in the user
@@ -53,18 +41,14 @@ public class UserService {
     }
     public LoginResult login(LoginRequest request) throws ResponseException{
         //verify that requested username or password is not empty or null
-        ArrayList<String> input = new ArrayList<String>();
+        ArrayList<String> input = new ArrayList<>();
         input.add(request.username());
         input.add(request.password());
         verifyInput(input);
 
         //verify that user information is correct
         UserData user;
-        try {
-            user = daos.userDao().getUser(request.username(), request.password());
-        } catch (DataAccessException e){
-            throw new ResponseException(e.getMessage(),500);
-        }
+        user = daos.userDao().getUser(request.username(), request.password());
         //if the user information is wrong
         if(user==null){
             //make throw unauthorized exception
@@ -80,33 +64,21 @@ public class UserService {
     public LogoutResult logout(LogoutRequest request) throws ResponseException{
         //verify user identity
         AuthData authorization;
-        try{
-            authorization = daos.authDao().getAuth(request.authToken());
-        } catch (DataAccessException e){
-            throw new ResponseException(e.getMessage(),500);
-        }
+        authorization = daos.authDao().getAuth(request.authToken());
         if(authorization==null){
             //make throw unauthorized exception
             throw new ResponseException("Error: unauthorized",401);
         }
-        try{
-            daos.authDao().deleteAuth(authorization);
-        } catch (DataAccessException e){
-            throw new ResponseException(e.getMessage(),500);
-        }
+        daos.authDao().deleteAuth(authorization);
 
         return new LogoutResult();
     }
 
 
-    private AuthData addAuthData(String username) throws ResponseException{
+    private AuthData addAuthData(String username){
         String authToken = UUID.randomUUID().toString();
         AuthData auth = new AuthData(authToken,username);
-        try{
-            daos.authDao().createAuth(auth);
-        } catch (DataAccessException e){
-            throw new ResponseException(e.getMessage(),500);
-        }
+        daos.authDao().createAuth(auth);
 
         return auth;
     }
