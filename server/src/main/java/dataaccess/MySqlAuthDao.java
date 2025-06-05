@@ -30,11 +30,11 @@ public class MySqlAuthDao implements AuthDao{
                     stmt.setString(i+1,params[i]);
                 }
                 ResultSet rs = stmt.executeQuery();
-                if(rs.wasNull()){
-                    return null;
+                if(rs.next()){
+                    return new AuthData(
+                            rs.getString(1),rs.getString(2));
                 }
-                return new AuthData(
-                        rs.getString(1),rs.getString(2));
+                return null;
             }
         } catch (Exception e){
             throw new ResponseException(String.format("unable to update database: %s, %s", statement, e.getMessage()),500);
