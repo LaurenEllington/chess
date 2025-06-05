@@ -5,33 +5,19 @@ import service.ResponseException;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.SQLException;
 
 public class MySqlAuthDao implements AuthDao{
-    public void createAuth(AuthData a) throws DataAccessException{
-        try (var conn = DatabaseManager.getConnection()) {
-            var statement = "INSERT INTO auth (authToken, username) VALUES (?, ?)";
-            executeUpdate(statement, a.authToken(), a.username());
-        } catch (Exception e){
-            throw new DataAccessException(e.getMessage());
-        }
+    public void createAuth(AuthData a){
+        var statement = "INSERT INTO auth (authToken, username) VALUES (?, ?)";
+        executeUpdate(statement, a.authToken(), a.username());
     }
-    public AuthData getAuth(String authToken) throws DataAccessException{
-        try (var conn = DatabaseManager.getConnection()) {
-            var statement = "SELECT username, authToken FROM auth WHERE authToken=?";
-            return executeUpdate(statement,authToken);
-        }
-        catch (SQLException e){
-            throw new DataAccessException(e.getMessage());
-        }
+    public AuthData getAuth(String authToken) {
+        var statement = "SELECT username, authToken FROM auth WHERE authToken=?";
+        return executeUpdate(statement,authToken);
     }
     public void deleteAuth(AuthData a) throws DataAccessException{
-        try (var conn = DatabaseManager.getConnection()) {
-            var statement = "DELETE FROM auth WHERE authToken=?";
-            executeUpdate(statement, a.authToken());
-        } catch (Exception e){
-            throw new DataAccessException(e.getMessage());
-        }
+        var statement = "DELETE FROM auth WHERE authToken=?";
+        executeUpdate(statement, a.authToken());
     }
     public void clearAuthData() throws DataAccessException{
         var statement = "TRUNCATE auth";
