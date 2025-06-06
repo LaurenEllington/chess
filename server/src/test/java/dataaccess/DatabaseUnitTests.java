@@ -1,6 +1,7 @@
 package dataaccess;
 
 import chess.ChessGame;
+import handler.JsonHandler;
 import model.*;
 import org.junit.jupiter.api.*;
 import org.mindrot.jbcrypt.BCrypt;
@@ -19,7 +20,7 @@ public class DatabaseUnitTests {
     private static final AuthData testAuth2 =
             new AuthData(UUID.randomUUID().toString(),"testUserName2");
     private GameData testGame =
-            new GameData(0,null,null,"testGame",new ChessGame());
+            new GameData(0,null,"smab","testGame",new ChessGame());
 
     private static final MySqlAuthDao authDao = new MySqlAuthDao();
     private static final MySqlGameDao gameDao = new MySqlGameDao();
@@ -184,10 +185,37 @@ public class DatabaseUnitTests {
         }
     }
     @Test
-    public void testCreateGame() {
-        Assertions.assertDoesNotThrow( () -> gameDao.createGame(testGame));
-
-        var statement = "SELECT username, password, email FROM user WHERE username=?";
+    public void testCreateGame() throws DataAccessException{
+        Assertions.assertDoesNotThrow(() -> gameDao.createGame(testGame),
+                String.format(insertError, testGame));
+        var sql = "SELECT gameID, whiteUsername, blackUsername, gameName, chessGame FROM game WHERE gameID=?";
+        try (var conn = DatabaseManager.getConnection()){
+            try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                ps.setInt(1,1);
+                ResultSet rs = ps.executeQuery();
+                Assertions.assertTrue(rs.next(),"Error: No data added");
+                int gameId = rs.getInt(1);
+                Assertions.assertEquals(1, gameId,String.format(inconsistentError,"gameID","gameID"));
+                Assertions.assertEquals(rs.getString(2), testGame.whiteUsername(),
+                        String.format(inconsistentError,"whiteUsername","whiteUsername"));
+                Assertions.assertEquals(rs.getString(3), testGame.blackUsername(),
+                        String.format(inconsistentError,"blackUsername","blackUsername"));
+                Assertions.assertEquals(rs.getString(4), testGame.gameName(),
+                        String.format(inconsistentError,"gameName","gameName"));
+                Assertions.assertEquals(JsonHandler.serialize(testGame.game()),rs.getString(5),
+                        String.format(inconsistentError,"chessGame","chessGame"));
+            }
+        } catch (SQLException ex){
+            throw new DataAccessException("Error: " + ex.getMessage());
+        }
+    }
+    @Test
+    public void testDuplicateGame(){
+        try{
+            addValidGame(testGame);
+            gameDao.createGame(testGame);
+            Assertions.fail(String.format(duplicateError,"game"));
+        } catch (DataAccessException ignored) {}
     }
     private void addValidUser() throws DataAccessException{
         String hash = BCrypt.hashpw(testUser.password(),BCrypt.gensalt());
@@ -197,6 +225,11 @@ public class DatabaseUnitTests {
     private void addValidAuth(AuthData a) throws DataAccessException{
         var statement = "INSERT INTO auth (authToken, username) VALUES (?, ?)";
         addValid(statement,a.authToken(),a.username());
+    }
+    private void addValidGame(GameData a) throws DataAccessException{
+        var statement = "INSERT INTO game (whiteUsername, blackUsername, gameName, chessGame) VALUES (?, ?, ?, ?)";
+        addValid(statement, testGame.whiteUsername(),testGame.blackUsername(),testGame.gameName(),
+                JsonHandler.serialize(testGame.game()));
     }
     private void addValid(String statement, String... params) throws DataAccessException{
         try (var conn = DatabaseManager.getConnection()){
