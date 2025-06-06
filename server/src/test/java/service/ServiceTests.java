@@ -1,4 +1,4 @@
-package java.service;
+package service;
 
 import chess.ChessGame;
 import dataaccess.MemoryAuthDao;
@@ -11,7 +11,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Order;
 import resultrequest.*;
 import server.DataAccessClasses;
-import service.*;
 
 import java.util.ArrayList;
 
