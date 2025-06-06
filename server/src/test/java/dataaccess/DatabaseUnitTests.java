@@ -1,15 +1,11 @@
 package dataaccess;
 
 import chess.ChessGame;
-import handler.JsonHandler;
 import model.*;
 import org.junit.jupiter.api.*;
 import org.mindrot.jbcrypt.BCrypt;
-import passoff.model.TestUser;
-import server.Server;
 import service.ResponseException;
 
-import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -112,7 +108,6 @@ public class DatabaseUnitTests {
         } catch (SQLException ex){
             throw new DataAccessException("Error: " + ex.getMessage());
         }
-
     }
     @Test
     public void testAddAuth() throws DataAccessException{
@@ -137,6 +132,40 @@ public class DatabaseUnitTests {
             authDao.createAuth(testAuth);
             Assertions.fail(String.format(duplicateError,"auth"));
         } catch (ResponseException ignored) {}
+    }
+    @Test
+    public void testGetAuth() throws DataAccessException{
+        addValidAuth();
+        AuthData dbAuth = Assertions.assertDoesNotThrow(() ->
+                authDao.getAuth(testAuth.authToken()),String.format(getError,testAuth));
+        compareAuth(dbAuth.authToken(), dbAuth.username());
+    }
+    @Test
+    public void testGetNonexistentAuth() throws DataAccessException{
+        Assertions.assertNull(authDao.getAuth(testAuth.authToken()),
+                "Error: calling getAuth on a nonexistent auth did not return null");
+        addValidAuth();
+        Assertions.assertNull(authDao.getAuth(UUID.randomUUID().toString()),
+                "Error: calling getAuth on a nonexistent auth did not return null");
+    }
+    @Test
+    public void deleteAuth() throws DataAccessException {
+        addValidAuth();
+        try {
+            authDao.deleteAuth(testAuth);
+        } catch (ResponseException e){
+            Assertions.fail("Error: "+e.getMessage());
+        }
+        var sql = "SELECT authToken, username FROM auth WHERE authToken=?";
+        try (var conn = DatabaseManager.getConnection()){
+            try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                ps.setString(1,testAuth.authToken());
+                ResultSet rs = ps.executeQuery();
+                Assertions.assertFalse(rs.next(),"Error: data still in table after clearUserData");
+            }
+        } catch (SQLException ex){
+            throw new DataAccessException("Error: " + ex.getMessage());
+        }
     }
     @Test
     public void testCreateGame() {
