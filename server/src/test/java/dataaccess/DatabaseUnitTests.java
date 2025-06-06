@@ -16,6 +16,8 @@ public class DatabaseUnitTests {
             new UserData("testUserName","testPassword","test@gmail.com");
     private static final AuthData testAuth =
             new AuthData(UUID.randomUUID().toString(),"testUserName");
+    private static final AuthData testAuth2 =
+            new AuthData(UUID.randomUUID().toString(),"testUserName2");
     private GameData testGame =
             new GameData(0,null,null,"testGame",new ChessGame());
 
@@ -98,10 +100,9 @@ public class DatabaseUnitTests {
         } catch (ResponseException e){
             Assertions.fail("Error: "+e.getMessage());
         }
-        var sql = "SELECT username, password, email FROM user WHERE username=?";
+        var sql = "SELECT username, password, email FROM user";
         try (var conn = DatabaseManager.getConnection()){
             try (PreparedStatement ps = conn.prepareStatement(sql)) {
-                ps.setString(1,testUser.username());
                 ResultSet rs = ps.executeQuery();
                 Assertions.assertFalse(rs.next(),"Error: data still in table after clearUserData");
             }
@@ -127,7 +128,7 @@ public class DatabaseUnitTests {
     }
     @Test
     public void testAddDuplicateAuth() throws DataAccessException{
-        addValidAuth();
+        addValidAuth(testAuth);
         try {
             authDao.createAuth(testAuth);
             Assertions.fail(String.format(duplicateError,"auth"));
@@ -135,7 +136,7 @@ public class DatabaseUnitTests {
     }
     @Test
     public void testGetAuth() throws DataAccessException{
-        addValidAuth();
+        addValidAuth(testAuth);
         AuthData dbAuth = Assertions.assertDoesNotThrow(() ->
                 authDao.getAuth(testAuth.authToken()),String.format(getError,testAuth));
         compareAuth(dbAuth.authToken(), dbAuth.username());
@@ -144,24 +145,39 @@ public class DatabaseUnitTests {
     public void testGetNonexistentAuth() throws DataAccessException{
         Assertions.assertNull(authDao.getAuth(testAuth.authToken()),
                 "Error: calling getAuth on a nonexistent auth did not return null");
-        addValidAuth();
+        addValidAuth(testAuth);
         Assertions.assertNull(authDao.getAuth(UUID.randomUUID().toString()),
                 "Error: calling getAuth on a nonexistent auth did not return null");
     }
     @Test
     public void deleteAuth() throws DataAccessException {
-        addValidAuth();
+        addValidAuth(testAuth);
+        addValidAuth(testAuth2);
         try {
             authDao.deleteAuth(testAuth);
         } catch (ResponseException e){
             Assertions.fail("Error: "+e.getMessage());
         }
-        var sql = "SELECT authToken, username FROM auth WHERE authToken=?";
+        var sql = "SELECT authToken, username FROM auth";
         try (var conn = DatabaseManager.getConnection()){
             try (PreparedStatement ps = conn.prepareStatement(sql)) {
-                ps.setString(1,testAuth.authToken());
                 ResultSet rs = ps.executeQuery();
-                Assertions.assertFalse(rs.next(),"Error: data still in table after clearUserData");
+                Assertions.assertTrue(rs.next(),"Error: no data at all in auth table after deleteAuth");
+                Assertions.assertFalse(rs.next(),"Error: data still in table after deleteAuth");
+            }
+        } catch (SQLException ex){
+            throw new DataAccessException("Error: " + ex.getMessage());
+        }
+    }
+    @Test
+    public void clearAuths() throws DataAccessException {
+        addValidAuth(testAuth);
+        authDao.clearAuthData();
+        var sql = "SELECT authToken, username FROM auth";
+        try (var conn = DatabaseManager.getConnection()){
+            try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                ResultSet rs = ps.executeQuery();
+                Assertions.assertFalse(rs.next(),"Error: data still in table after clearAuthData");
             }
         } catch (SQLException ex){
             throw new DataAccessException("Error: " + ex.getMessage());
@@ -178,9 +194,9 @@ public class DatabaseUnitTests {
         var statement = "INSERT INTO user (username, password, email) VALUES (?, ?, ?)";
         addValid(statement,testUser.username(),hash,testUser.email());
     }
-    private void addValidAuth() throws DataAccessException{
+    private void addValidAuth(AuthData a) throws DataAccessException{
         var statement = "INSERT INTO auth (authToken, username) VALUES (?, ?)";
-        addValid(statement,testAuth.authToken(),testAuth.username());
+        addValid(statement,a.authToken(),a.username());
     }
     private void addValid(String statement, String... params) throws DataAccessException{
         try (var conn = DatabaseManager.getConnection()){
