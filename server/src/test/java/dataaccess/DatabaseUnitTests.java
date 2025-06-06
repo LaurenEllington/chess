@@ -95,6 +95,26 @@ public class DatabaseUnitTests {
                 "Error: retrieved user with a password that was incorrect");
     }
     @Test
+    public void clearUsers() throws DataAccessException {
+        addValidUser();
+        try {
+            userDao.clearUserData();
+        } catch (ResponseException e){
+            Assertions.fail("Error: "+e.getMessage());
+        }
+        var sql = "SELECT username, password, email FROM user WHERE username=?";
+        try (var conn = DatabaseManager.getConnection()){
+            try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                ps.setString(1,testUser.username());
+                ResultSet rs = ps.executeQuery();
+                Assertions.assertFalse(rs.next(),"Error: data still in table after clearUserData");
+            }
+        } catch (SQLException ex){
+            throw new DataAccessException("Error: " + ex.getMessage());
+        }
+
+    }
+    @Test
     public void testCreateGame() {
         Assertions.assertDoesNotThrow( () -> gameDao.createGame(testGame));
 
