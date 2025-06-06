@@ -217,6 +217,20 @@ public class DatabaseUnitTests {
             Assertions.fail(String.format(DUPLICATE_ERROR,"game"));
         } catch (DataAccessException ignored) {}
     }
+    @Test
+    public void testGetGame() throws DataAccessException{
+        addValidGame(TEST_GAME);
+        GameData dbGame = Assertions.assertDoesNotThrow(() ->
+                GAME_DAO.getGame(1),String.format(GET_ERROR,TEST_GAME));
+        compareGame(dbGame.gameID(),dbGame.whiteUsername(),dbGame.blackUsername(),dbGame.gameName(),
+                JsonHandler.serialize(dbGame.game()));
+    }
+    @Test
+    public void testGetInvalidGame() throws DataAccessException{
+        addValidGame(TEST_GAME);
+        Assertions.assertNull(GAME_DAO.getGame(0),
+                "Error: using getGame with an invalid gameID does not return null");
+    }
     private void addValidUser() throws DataAccessException{
         String hash = BCrypt.hashpw(TEST_USER.password(),BCrypt.gensalt());
         var statement = "INSERT INTO user (username, password, email) VALUES (?, ?, ?)";
@@ -255,5 +269,16 @@ public class DatabaseUnitTests {
                 String.format(INCONSISTENT_ERROR,"authToken","authToken"));
         Assertions.assertEquals(dbUsername, TEST_AUTH.username(),
                 String.format(INCONSISTENT_ERROR,"username","username"));
+    }
+    private void compareGame(int dbGameId, String dbWhiteUser, String dbBlackUser, String dbGameName, String dbGame){
+        Assertions.assertEquals(1, dbGameId,String.format(INCONSISTENT_ERROR,"gameID","gameID"));
+        Assertions.assertEquals(dbWhiteUser, TEST_GAME.whiteUsername(),
+                String.format(INCONSISTENT_ERROR,"whiteUsername","whiteUsername"));
+        Assertions.assertEquals(dbBlackUser, TEST_GAME.blackUsername(),
+                String.format(INCONSISTENT_ERROR,"blackUsername","blackUsername"));
+        Assertions.assertEquals(dbGameName, TEST_GAME.gameName(),
+                String.format(INCONSISTENT_ERROR,"gameName","gameName"));
+        Assertions.assertEquals(JsonHandler.serialize(TEST_GAME.game()),dbGame,
+                String.format(INCONSISTENT_ERROR,"chessGame","chessGame"));
     }
 }
