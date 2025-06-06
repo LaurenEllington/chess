@@ -192,8 +192,7 @@ public class DatabaseUnitTests {
     public void testCreateGame() throws DataAccessException{
         Assertions.assertDoesNotThrow(() -> GAME_DAO.createGame(TEST_GAME),
                 String.format(INSERT_ERROR, TEST_GAME));
-        var sql = "SELECT gameID, whiteUsername, blackUsername, gameName, chessGame FROM game WHERE gameID=?";
-        var game = readGame(1);
+        var game = readGame();
         compareGame(game.gameID(),game.whiteUsername(),game.blackUsername(),game.gameName(),
                 JsonHandler.serialize(game.game()));
     }
@@ -240,7 +239,7 @@ public class DatabaseUnitTests {
         } catch (ResponseException ex) {
             Assertions.fail("Error: couldn't update game");
         }
-        var game = readGame(1);
+        var game = readGame();
         Assertions.assertEquals(expected.gameID(),game.gameID());
         Assertions.assertEquals(expected.whiteUsername(),game.whiteUsername());
         Assertions.assertEquals(expected.blackUsername(),game.blackUsername());
@@ -256,6 +255,21 @@ public class DatabaseUnitTests {
             GAME_DAO.updateGame(expected.gameID(),expected);
         } catch (ResponseException ex) {
             Assertions.fail("Error: couldn't update game, invalid id");
+        }
+    }
+    @Test
+    public void clearGames() throws DataAccessException {
+        addValidGame(TEST_GAME);
+        addValidGame(TEST_GAME2);
+        GAME_DAO.clearGameData();
+        var sql = "SELECT gameId FROM game";
+        try (var conn = DatabaseManager.getConnection()){
+            try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                ResultSet rs = ps.executeQuery();
+                Assertions.assertFalse(rs.next(),"Error: data still in table after clearGameData");
+            }
+        } catch (SQLException ex){
+            throw new DataAccessException("Error: " + ex.getMessage());
         }
     }
     private void addValidUser() throws DataAccessException{
@@ -308,11 +322,11 @@ public class DatabaseUnitTests {
         Assertions.assertEquals(JsonHandler.serialize(TEST_GAME.game()),dbGame,
                 String.format(INCONSISTENT_ERROR,"chessGame","chessGame"));
     }
-    private GameData readGame(int gameId) throws DataAccessException{
+    private GameData readGame() throws DataAccessException{
         var sql = "SELECT gameID, whiteUsername, blackUsername, gameName, chessGame FROM game WHERE gameID=?";
         try (var conn = DatabaseManager.getConnection()){
             try (PreparedStatement ps = conn.prepareStatement(sql)) {
-                ps.setInt(1,gameId);
+                ps.setInt(1,1);
                 ResultSet rs = ps.executeQuery();
                 Assertions.assertTrue(rs.next(),"Error: No game with that gameID");
                 var game = new Gson().fromJson(rs.getString(5), ChessGame.class);
