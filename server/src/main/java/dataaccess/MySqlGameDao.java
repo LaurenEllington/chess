@@ -52,9 +52,6 @@ public class MySqlGameDao implements GameDao{
         } catch (SQLException e) {
             throw new DataAccessException(e.getMessage());
         }
-        if(result.isEmpty()){
-            return null;
-        }
         return result;
     }
     public void updateGame(int gameID, GameData game){
@@ -96,8 +93,9 @@ public class MySqlGameDao implements GameDao{
                 }
                 if (query){
                     ResultSet rs = stmt.executeQuery();
-                    rs.next();
-                    return readGame(rs);
+                    if(rs.next()){
+                        return readGame(rs);
+                    }
                 }
                 else{
                     stmt.executeUpdate();
