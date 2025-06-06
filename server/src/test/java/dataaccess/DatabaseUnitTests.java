@@ -2,8 +2,7 @@ package dataaccess;
 
 import chess.ChessGame;
 import handler.JsonHandler;
-import model.GameData;
-import model.UserData;
+import model.*;
 import org.junit.jupiter.api.*;
 import org.mindrot.jbcrypt.BCrypt;
 import passoff.model.TestUser;
@@ -14,18 +13,23 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.UUID;
 
 public class DatabaseUnitTests {
     private static final UserData testUser =
             new UserData("testUserName","testPassword","test@gmail.com");
-    GameData testGame =
+    private static final AuthData testAuth =
+            new AuthData(UUID.randomUUID().toString(),"testUserName");
+    private GameData testGame =
             new GameData(0,null,null,"testGame",new ChessGame());
 
     private static final MySqlAuthDao authDao = new MySqlAuthDao();
     private static final MySqlGameDao gameDao = new MySqlGameDao();
     private static final MySqlUserDao userDao = new MySqlUserDao();
-    public static final String insertError = "Error: unable to insert into database: %s";
-    public static final String getError = "Error: could not get %s from database";
+    private static final String insertError = "Error: unable to insert into database: %s";
+    private static final String getError = "Error: could not get %s from database";
+    private static final String inconsistentError = "Error: %s added into database is not the same as original %s";
+    private static final String duplicateError = "Error: adding a duplicate %s to the database did not throw an exception";
 
     //should either recreate tables or end transaction
     @BeforeEach
@@ -57,16 +61,12 @@ public class DatabaseUnitTests {
 
     }
     @Test
-    public void testInvalidUser() throws DataAccessException{
+    public void testDuplicateUser() throws DataAccessException{
         addValidUser();
-        boolean throwed = false;
         try {
             userDao.createUser(testUser);
-        } catch (ResponseException ex) {
-            throwed = true;
-        }
-        Assertions.assertTrue(throwed,
-                "Error: adding a duplicate user to the database did not throw an exception");
+            Assertions.fail(String.format(duplicateError,"user"));
+        } catch (ResponseException ignored) {}
     }
     @Test
     public void testGetUser() throws DataAccessException{
@@ -115,6 +115,30 @@ public class DatabaseUnitTests {
 
     }
     @Test
+    public void testAddAuth() throws DataAccessException{
+        Assertions.assertDoesNotThrow( () -> authDao.createAuth(testAuth),
+                String.format(insertError, testAuth));
+        var sql = "SELECT authToken, username FROM auth WHERE authToken=?";
+        try (var conn = DatabaseManager.getConnection()){
+            try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                ps.setString(1,testAuth.authToken());
+                ResultSet rs = ps.executeQuery();
+                Assertions.assertTrue(rs.next(),"Error: No data added");
+                compareAuth(rs.getString(1),rs.getString(2));
+            }
+        } catch (SQLException ex){
+            throw new DataAccessException("Error: " + ex.getMessage());
+        }
+    }
+    @Test
+    public void testAddDuplicateAuth() throws DataAccessException{
+        addValidAuth();
+        try {
+            authDao.createAuth(testAuth);
+            Assertions.fail(String.format(duplicateError,"auth"));
+        } catch (ResponseException ignored) {}
+    }
+    @Test
     public void testCreateGame() {
         Assertions.assertDoesNotThrow( () -> gameDao.createGame(testGame));
 
@@ -123,11 +147,18 @@ public class DatabaseUnitTests {
     private void addValidUser() throws DataAccessException{
         String hash = BCrypt.hashpw(testUser.password(),BCrypt.gensalt());
         var statement = "INSERT INTO user (username, password, email) VALUES (?, ?, ?)";
+        addValid(statement,testUser.username(),hash,testUser.email());
+    }
+    private void addValidAuth() throws DataAccessException{
+        var statement = "INSERT INTO auth (authToken, username) VALUES (?, ?)";
+        addValid(statement,testAuth.authToken(),testAuth.username());
+    }
+    private void addValid(String statement, String... params) throws DataAccessException{
         try (var conn = DatabaseManager.getConnection()){
             try (PreparedStatement ps = conn.prepareStatement(statement)) {
-                ps.setString(1,testUser.username());
-                ps.setString(2,hash);
-                ps.setString(3,testUser.email());
+                for(int i = 0; i < params.length; i++){
+                    ps.setString(i+1,params[i]);
+                }
                 ps.executeUpdate();
             }
         } catch (SQLException ex){
@@ -135,11 +166,16 @@ public class DatabaseUnitTests {
         }
     }
     private void compareUser(String dbUsername, String dbPassword, String dbEmail){
-        String errorMessage = "Error: %s added into database is different than username provided";
-        Assertions.assertEquals(dbUsername,testUser.username(), String.format(errorMessage,"username"));
+        Assertions.assertEquals(dbUsername,testUser.username(), String.format(inconsistentError,"username","username"));
         Assertions.assertNotEquals(dbPassword,testUser.password(), "Error: password not encrypted");
         Assertions.assertTrue(() -> BCrypt.checkpw(testUser.password(),dbPassword),
-                String.format(errorMessage,"password"));
-        Assertions.assertEquals(dbEmail,testUser.email(),String.format(errorMessage,"email"));
+                String.format(inconsistentError,"password","password"));
+        Assertions.assertEquals(dbEmail,testUser.email(),String.format(inconsistentError,"email","email"));
+    }
+    private void compareAuth(String dbAuthToken, String dbUsername){
+        Assertions.assertEquals(dbAuthToken,testAuth.authToken(),
+                String.format(inconsistentError,"authToken","authToken"));
+        Assertions.assertEquals(dbUsername,testAuth.username(),
+                String.format(inconsistentError,"username","username"));
     }
 }
