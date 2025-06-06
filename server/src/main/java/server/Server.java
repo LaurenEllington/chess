@@ -9,7 +9,6 @@ public class Server {
     private final String dataAccessType;
     public Server(String dataAccessType){
         this.dataAccessType=dataAccessType;
-
     }
     public Server(){
         this("sql"); //default dataaccesstype
@@ -23,6 +22,7 @@ public class Server {
         DataAccessClasses daos;
         try {
             daos = getDaos();
+            DatabaseManager.configureDatabase();
         } catch (DataAccessException e) {
             throw new ResponseException(e.getMessage(),500);
         }
