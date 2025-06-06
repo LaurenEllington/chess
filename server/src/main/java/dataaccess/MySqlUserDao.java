@@ -53,7 +53,7 @@ public class MySqlUserDao implements UserDao{
                 return null;
             }
         } catch (Exception e){
-            throw new ResponseException(String.format("unable to update database: %s, %s", statement, e.getMessage()),500);
+            throw new ResponseException(String.format("Error: unable to update database: %s, %s", statement, e.getMessage()),500);
         }
     }
 }

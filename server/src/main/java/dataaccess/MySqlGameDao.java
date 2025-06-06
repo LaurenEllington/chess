@@ -31,7 +31,7 @@ public class MySqlGameDao implements GameDao{
             }
         } catch (Exception e){
             throw new DataAccessException(
-                    String.format("unable to insert into database: %s, %s", statement, e.getMessage()));
+                    String.format("Error: unable to insert into database: %s, %s", statement, e.getMessage()));
         }
     }
     public GameData getGame(int gameID){
@@ -105,7 +105,7 @@ public class MySqlGameDao implements GameDao{
                 return null;
             }
         } catch (Exception e){
-            throw new ResponseException(String.format("unable to update database: %s, %s", statement, e.getMessage()),500);
+            throw new ResponseException(String.format("Error: unable to update database: %s, %s", statement, e.getMessage()),500);
         }
     }
     /*
