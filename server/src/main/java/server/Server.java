@@ -12,10 +12,8 @@ public class Server {
 
     }
     public Server(){
-        this("memory");
+        this("sql"); //default dataaccesstype
     }
-    //potential solution: add a string instance variable and a getter and then add
-     //a new class to initialize daos using that variable for all the service classes
     public int run(int desiredPort) {
         if(desiredPort!=0){
             Spark.port(desiredPort);

@@ -59,7 +59,7 @@ public class MySqlGameDao implements GameDao{
     }
     public void updateGame(int gameID, GameData game){
         var statement = "UPDATE game set whiteUsername=?, blackUsername=?, gameName=?, chessGame=? where gameID=?";
-        executeUpdate(statement, false, game.whiteUsername(),game.blackUsername(),game.gameName(),game.game(),gameID);
+        executeUpdate(statement, false, game.whiteUsername(),game.blackUsername(),game.gameName(),game.game(),game.gameID());
     }
 
     public void clearGameData(){
@@ -96,6 +96,7 @@ public class MySqlGameDao implements GameDao{
                 }
                 if (query){
                     ResultSet rs = stmt.executeQuery();
+                    rs.next();
                     return readGame(rs);
                 }
                 else{
