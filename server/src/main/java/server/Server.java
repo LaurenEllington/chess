@@ -15,12 +15,7 @@ public class Server {
         this("sql"); //default dataaccesstype
     }
     public int run(int desiredPort) {
-        if(desiredPort!=0){
-            Spark.port(desiredPort);
-        }
-        else{
-            Spark.port(8080);
-        }
+        Spark.port(desiredPort);
         //initialize all handlers
         //once handlers are created, listen for incoming requests
         //figure out what kind of request is being called then forward the request to handler objects to process them
