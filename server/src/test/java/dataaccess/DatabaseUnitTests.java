@@ -13,22 +13,22 @@ import java.sql.SQLException;
 import java.util.UUID;
 
 public class DatabaseUnitTests {
-    private static final UserData testUser =
+    private static final UserData TEST_USER =
             new UserData("testUserName","testPassword","test@gmail.com");
-    private static final AuthData testAuth =
+    private static final AuthData TEST_AUTH =
             new AuthData(UUID.randomUUID().toString(),"testUserName");
-    private static final AuthData testAuth2 =
+    private static final AuthData TEST_AUTH2 =
             new AuthData(UUID.randomUUID().toString(),"testUserName2");
-    private GameData testGame =
+    private static final GameData TEST_GAME =
             new GameData(0,null,"smab","testGame",new ChessGame());
 
-    private static final MySqlAuthDao authDao = new MySqlAuthDao();
-    private static final MySqlGameDao gameDao = new MySqlGameDao();
-    private static final MySqlUserDao userDao = new MySqlUserDao();
-    private static final String insertError = "Error: unable to insert into database: %s";
-    private static final String getError = "Error: could not get %s from database";
-    private static final String inconsistentError = "Error: %s added into database is not the same as original %s";
-    private static final String duplicateError = "Error: adding a duplicate %s to the database did not throw an exception";
+    private static final MySqlAuthDao AUTH_DAO = new MySqlAuthDao();
+    private static final MySqlGameDao GAME_DAO = new MySqlGameDao();
+    private static final MySqlUserDao USER_DAO = new MySqlUserDao();
+    private static final String INSERT_ERROR = "Error: unable to insert into database: %s";
+    private static final String GET_ERROR = "Error: could not get %s from database";
+    private static final String INCONSISTENT_ERROR = "Error: %s added into database is not the same as original %s";
+    private static final String DUPLICATE_ERROR = "Error: adding a duplicate %s to the database did not throw an exception";
 
     //should either recreate tables or end transaction
     @BeforeEach
@@ -41,12 +41,12 @@ public class DatabaseUnitTests {
     }
     @Test
     public void testAddUser() throws DataAccessException{
-        Assertions.assertDoesNotThrow( () -> userDao.createUser(testUser),
-                String.format(insertError, testUser));
+        Assertions.assertDoesNotThrow( () -> USER_DAO.createUser(TEST_USER),
+                String.format(INSERT_ERROR, TEST_USER));
         var sql = "SELECT username, password, email FROM user WHERE username=?";
         try (var conn = DatabaseManager.getConnection()){
             try (PreparedStatement ps = conn.prepareStatement(sql)) {
-                ps.setString(1,testUser.username());
+                ps.setString(1,TEST_USER.username());
                 ResultSet rs = ps.executeQuery();
                 Assertions.assertTrue(rs.next(),"Error: No data added");
                 String dbUsername = rs.getString(1);
@@ -63,41 +63,41 @@ public class DatabaseUnitTests {
     public void testDuplicateUser() throws DataAccessException{
         addValidUser();
         try {
-            userDao.createUser(testUser);
-            Assertions.fail(String.format(duplicateError,"user"));
+            USER_DAO.createUser(TEST_USER);
+            Assertions.fail(String.format(DUPLICATE_ERROR,"user"));
         } catch (ResponseException ignored) {}
     }
     @Test
     public void testGetUser() throws DataAccessException{
         addValidUser();
         UserData dbUser = Assertions.assertDoesNotThrow(() ->
-                userDao.getUser(testUser.username()),String.format(getError,testUser));
+                USER_DAO.getUser(TEST_USER.username()),String.format(GET_ERROR,TEST_USER));
         compareUser(dbUser.username(),dbUser.password(),dbUser.email());
     }
     @Test
     public void testGetNonexistentUser(){
-        Assertions.assertNull(userDao.getUser(testUser.username()),
+        Assertions.assertNull(USER_DAO.getUser(TEST_USER.username()),
                 "Error: calling getUser on a nonexistent user did not return null");
     }
     @Test
     public void testRightPassword() throws DataAccessException{
         addValidUser();
         UserData dbUser = Assertions.assertDoesNotThrow(() ->
-                userDao.getUser(testUser.username(),testUser.password()),
-                String.format(getError,testUser));
+                USER_DAO.getUser(TEST_USER.username(),TEST_USER.password()),
+                String.format(GET_ERROR,TEST_USER));
         compareUser(dbUser.username(),dbUser.password(),dbUser.email());
     }
     @Test
     public void testWrongPassword() throws DataAccessException{
         addValidUser();
-        Assertions.assertNull(userDao.getUser(testUser.username(),"invalid"),
+        Assertions.assertNull(USER_DAO.getUser(TEST_USER.username(),"invalid"),
                 "Error: retrieved user with a password that was incorrect");
     }
     @Test
     public void clearUsers() throws DataAccessException {
         addValidUser();
         try {
-            userDao.clearUserData();
+            USER_DAO.clearUserData();
         } catch (ResponseException e){
             Assertions.fail("Error: "+e.getMessage());
         }
@@ -113,12 +113,12 @@ public class DatabaseUnitTests {
     }
     @Test
     public void testAddAuth() throws DataAccessException{
-        Assertions.assertDoesNotThrow( () -> authDao.createAuth(testAuth),
-                String.format(insertError, testAuth));
+        Assertions.assertDoesNotThrow( () -> AUTH_DAO.createAuth(TEST_AUTH),
+                String.format(INSERT_ERROR, TEST_AUTH));
         var sql = "SELECT authToken, username FROM auth WHERE authToken=?";
         try (var conn = DatabaseManager.getConnection()){
             try (PreparedStatement ps = conn.prepareStatement(sql)) {
-                ps.setString(1,testAuth.authToken());
+                ps.setString(1, TEST_AUTH.authToken());
                 ResultSet rs = ps.executeQuery();
                 Assertions.assertTrue(rs.next(),"Error: No data added");
                 compareAuth(rs.getString(1),rs.getString(2));
@@ -129,33 +129,33 @@ public class DatabaseUnitTests {
     }
     @Test
     public void testAddDuplicateAuth() throws DataAccessException{
-        addValidAuth(testAuth);
+        addValidAuth(TEST_AUTH);
         try {
-            authDao.createAuth(testAuth);
-            Assertions.fail(String.format(duplicateError,"auth"));
+            AUTH_DAO.createAuth(TEST_AUTH);
+            Assertions.fail(String.format(DUPLICATE_ERROR,"auth"));
         } catch (ResponseException ignored) {}
     }
     @Test
     public void testGetAuth() throws DataAccessException{
-        addValidAuth(testAuth);
+        addValidAuth(TEST_AUTH);
         AuthData dbAuth = Assertions.assertDoesNotThrow(() ->
-                authDao.getAuth(testAuth.authToken()),String.format(getError,testAuth));
+                AUTH_DAO.getAuth(TEST_AUTH.authToken()),String.format(GET_ERROR, TEST_AUTH));
         compareAuth(dbAuth.authToken(), dbAuth.username());
     }
     @Test
     public void testGetNonexistentAuth() throws DataAccessException{
-        Assertions.assertNull(authDao.getAuth(testAuth.authToken()),
+        Assertions.assertNull(AUTH_DAO.getAuth(TEST_AUTH.authToken()),
                 "Error: calling getAuth on a nonexistent auth did not return null");
-        addValidAuth(testAuth);
-        Assertions.assertNull(authDao.getAuth(UUID.randomUUID().toString()),
+        addValidAuth(TEST_AUTH);
+        Assertions.assertNull(AUTH_DAO.getAuth(UUID.randomUUID().toString()),
                 "Error: calling getAuth on a nonexistent auth did not return null");
     }
     @Test
     public void deleteAuth() throws DataAccessException {
-        addValidAuth(testAuth);
-        addValidAuth(testAuth2);
+        addValidAuth(TEST_AUTH);
+        addValidAuth(TEST_AUTH2);
         try {
-            authDao.deleteAuth(testAuth);
+            AUTH_DAO.deleteAuth(TEST_AUTH);
         } catch (ResponseException e){
             Assertions.fail("Error: "+e.getMessage());
         }
@@ -172,8 +172,8 @@ public class DatabaseUnitTests {
     }
     @Test
     public void clearAuths() throws DataAccessException {
-        addValidAuth(testAuth);
-        authDao.clearAuthData();
+        addValidAuth(TEST_AUTH);
+        AUTH_DAO.clearAuthData();
         var sql = "SELECT authToken, username FROM auth";
         try (var conn = DatabaseManager.getConnection()){
             try (PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -186,8 +186,8 @@ public class DatabaseUnitTests {
     }
     @Test
     public void testCreateGame() throws DataAccessException{
-        Assertions.assertDoesNotThrow(() -> gameDao.createGame(testGame),
-                String.format(insertError, testGame));
+        Assertions.assertDoesNotThrow(() -> GAME_DAO.createGame(TEST_GAME),
+                String.format(INSERT_ERROR, TEST_GAME));
         var sql = "SELECT gameID, whiteUsername, blackUsername, gameName, chessGame FROM game WHERE gameID=?";
         try (var conn = DatabaseManager.getConnection()){
             try (PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -195,15 +195,15 @@ public class DatabaseUnitTests {
                 ResultSet rs = ps.executeQuery();
                 Assertions.assertTrue(rs.next(),"Error: No data added");
                 int gameId = rs.getInt(1);
-                Assertions.assertEquals(1, gameId,String.format(inconsistentError,"gameID","gameID"));
-                Assertions.assertEquals(rs.getString(2), testGame.whiteUsername(),
-                        String.format(inconsistentError,"whiteUsername","whiteUsername"));
-                Assertions.assertEquals(rs.getString(3), testGame.blackUsername(),
-                        String.format(inconsistentError,"blackUsername","blackUsername"));
-                Assertions.assertEquals(rs.getString(4), testGame.gameName(),
-                        String.format(inconsistentError,"gameName","gameName"));
-                Assertions.assertEquals(JsonHandler.serialize(testGame.game()),rs.getString(5),
-                        String.format(inconsistentError,"chessGame","chessGame"));
+                Assertions.assertEquals(1, gameId,String.format(INCONSISTENT_ERROR,"gameID","gameID"));
+                Assertions.assertEquals(rs.getString(2), TEST_GAME.whiteUsername(),
+                        String.format(INCONSISTENT_ERROR,"whiteUsername","whiteUsername"));
+                Assertions.assertEquals(rs.getString(3), TEST_GAME.blackUsername(),
+                        String.format(INCONSISTENT_ERROR,"blackUsername","blackUsername"));
+                Assertions.assertEquals(rs.getString(4), TEST_GAME.gameName(),
+                        String.format(INCONSISTENT_ERROR,"gameName","gameName"));
+                Assertions.assertEquals(JsonHandler.serialize(TEST_GAME.game()),rs.getString(5),
+                        String.format(INCONSISTENT_ERROR,"chessGame","chessGame"));
             }
         } catch (SQLException ex){
             throw new DataAccessException("Error: " + ex.getMessage());
@@ -212,24 +212,24 @@ public class DatabaseUnitTests {
     @Test
     public void testDuplicateGame(){
         try{
-            addValidGame(testGame);
-            gameDao.createGame(testGame);
-            Assertions.fail(String.format(duplicateError,"game"));
+            addValidGame(TEST_GAME);
+            GAME_DAO.createGame(TEST_GAME);
+            Assertions.fail(String.format(DUPLICATE_ERROR,"game"));
         } catch (DataAccessException ignored) {}
     }
     private void addValidUser() throws DataAccessException{
-        String hash = BCrypt.hashpw(testUser.password(),BCrypt.gensalt());
+        String hash = BCrypt.hashpw(TEST_USER.password(),BCrypt.gensalt());
         var statement = "INSERT INTO user (username, password, email) VALUES (?, ?, ?)";
-        addValid(statement,testUser.username(),hash,testUser.email());
+        addValid(statement,TEST_USER.username(),hash,TEST_USER.email());
     }
     private void addValidAuth(AuthData a) throws DataAccessException{
         var statement = "INSERT INTO auth (authToken, username) VALUES (?, ?)";
         addValid(statement,a.authToken(),a.username());
     }
-    private void addValidGame(GameData a) throws DataAccessException{
+    private void addValidGame(GameData game) throws DataAccessException{
         var statement = "INSERT INTO game (whiteUsername, blackUsername, gameName, chessGame) VALUES (?, ?, ?, ?)";
-        addValid(statement, testGame.whiteUsername(),testGame.blackUsername(),testGame.gameName(),
-                JsonHandler.serialize(testGame.game()));
+        addValid(statement, game.whiteUsername(),game.blackUsername(),game.gameName(),
+                JsonHandler.serialize(game.game()));
     }
     private void addValid(String statement, String... params) throws DataAccessException{
         try (var conn = DatabaseManager.getConnection()){
@@ -244,16 +244,16 @@ public class DatabaseUnitTests {
         }
     }
     private void compareUser(String dbUsername, String dbPassword, String dbEmail){
-        Assertions.assertEquals(dbUsername,testUser.username(), String.format(inconsistentError,"username","username"));
-        Assertions.assertNotEquals(dbPassword,testUser.password(), "Error: password not encrypted");
-        Assertions.assertTrue(() -> BCrypt.checkpw(testUser.password(),dbPassword),
-                String.format(inconsistentError,"password","password"));
-        Assertions.assertEquals(dbEmail,testUser.email(),String.format(inconsistentError,"email","email"));
+        Assertions.assertEquals(dbUsername,TEST_USER.username(), String.format(INCONSISTENT_ERROR,"username","username"));
+        Assertions.assertNotEquals(dbPassword,TEST_USER.password(), "Error: password not encrypted");
+        Assertions.assertTrue(() -> BCrypt.checkpw(TEST_USER.password(),dbPassword),
+                String.format(INCONSISTENT_ERROR,"password","password"));
+        Assertions.assertEquals(dbEmail,TEST_USER.email(),String.format(INCONSISTENT_ERROR,"email","email"));
     }
     private void compareAuth(String dbAuthToken, String dbUsername){
-        Assertions.assertEquals(dbAuthToken,testAuth.authToken(),
-                String.format(inconsistentError,"authToken","authToken"));
-        Assertions.assertEquals(dbUsername,testAuth.username(),
-                String.format(inconsistentError,"username","username"));
+        Assertions.assertEquals(dbAuthToken, TEST_AUTH.authToken(),
+                String.format(INCONSISTENT_ERROR,"authToken","authToken"));
+        Assertions.assertEquals(dbUsername, TEST_AUTH.username(),
+                String.format(INCONSISTENT_ERROR,"username","username"));
     }
 }
