@@ -1,6 +1,7 @@
 package dataaccess;
 
 import chess.ChessGame;
+import com.google.gson.Gson;
 import handler.JsonHandler;
 import model.*;
 import org.junit.jupiter.api.*;
@@ -10,6 +11,7 @@ import service.ResponseException;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.UUID;
 
 public class DatabaseUnitTests {
@@ -20,7 +22,9 @@ public class DatabaseUnitTests {
     private static final AuthData TEST_AUTH2 =
             new AuthData(UUID.randomUUID().toString(),"testUserName2");
     private static final GameData TEST_GAME =
-            new GameData(0,null,"smab","testGame",new ChessGame());
+            new GameData(1,null,"smab","testGame",new ChessGame());
+    private static final GameData TEST_GAME2 =
+            new GameData(2,"soHungry",null,"testGame2",new ChessGame());
 
     private static final MySqlAuthDao AUTH_DAO = new MySqlAuthDao();
     private static final MySqlGameDao GAME_DAO = new MySqlGameDao();
@@ -189,25 +193,9 @@ public class DatabaseUnitTests {
         Assertions.assertDoesNotThrow(() -> GAME_DAO.createGame(TEST_GAME),
                 String.format(INSERT_ERROR, TEST_GAME));
         var sql = "SELECT gameID, whiteUsername, blackUsername, gameName, chessGame FROM game WHERE gameID=?";
-        try (var conn = DatabaseManager.getConnection()){
-            try (PreparedStatement ps = conn.prepareStatement(sql)) {
-                ps.setInt(1,1);
-                ResultSet rs = ps.executeQuery();
-                Assertions.assertTrue(rs.next(),"Error: No data added");
-                int gameId = rs.getInt(1);
-                Assertions.assertEquals(1, gameId,String.format(INCONSISTENT_ERROR,"gameID","gameID"));
-                Assertions.assertEquals(rs.getString(2), TEST_GAME.whiteUsername(),
-                        String.format(INCONSISTENT_ERROR,"whiteUsername","whiteUsername"));
-                Assertions.assertEquals(rs.getString(3), TEST_GAME.blackUsername(),
-                        String.format(INCONSISTENT_ERROR,"blackUsername","blackUsername"));
-                Assertions.assertEquals(rs.getString(4), TEST_GAME.gameName(),
-                        String.format(INCONSISTENT_ERROR,"gameName","gameName"));
-                Assertions.assertEquals(JsonHandler.serialize(TEST_GAME.game()),rs.getString(5),
-                        String.format(INCONSISTENT_ERROR,"chessGame","chessGame"));
-            }
-        } catch (SQLException ex){
-            throw new DataAccessException("Error: " + ex.getMessage());
-        }
+        var game = readGame(1);
+        compareGame(game.gameID(),game.whiteUsername(),game.blackUsername(),game.gameName(),
+                JsonHandler.serialize(game.game()));
     }
     @Test
     public void testDuplicateGame(){
@@ -230,6 +218,45 @@ public class DatabaseUnitTests {
         addValidGame(TEST_GAME);
         Assertions.assertNull(GAME_DAO.getGame(0),
                 "Error: using getGame with an invalid gameID does not return null");
+    }
+    @Test
+    public void testListGames() throws DataAccessException{
+        ArrayList<GameData> expected = new ArrayList<>();
+        expected.add(TEST_GAME);
+        expected.add(TEST_GAME2);
+        addValidGame(TEST_GAME);
+        addValidGame(TEST_GAME2);
+        Assertions.assertEquals(expected,GAME_DAO.listGames(),
+                "Error: listGames does not return expected output");
+    }
+    //dunno what to do for a negative listGames test
+    @Test
+    public void testUpdateGame() throws DataAccessException{
+        addValidGame(TEST_GAME);
+        GameData expected = new GameData(
+                1,"wob",TEST_GAME.blackUsername(),TEST_GAME.gameName(),TEST_GAME.game());
+        try{
+            GAME_DAO.updateGame(1,expected);
+        } catch (ResponseException ex) {
+            Assertions.fail("Error: couldn't update game");
+        }
+        var game = readGame(1);
+        Assertions.assertEquals(expected.gameID(),game.gameID());
+        Assertions.assertEquals(expected.whiteUsername(),game.whiteUsername());
+        Assertions.assertEquals(expected.blackUsername(),game.blackUsername());
+        Assertions.assertEquals(expected.gameName(),game.gameName());
+        Assertions.assertEquals(JsonHandler.serialize(expected.game()),JsonHandler.serialize(game.game()));
+    }
+    @Test
+    public void testInvalidUpdate() throws DataAccessException{
+        addValidGame(TEST_GAME);
+        GameData expected = new GameData(
+                0,"wob",TEST_GAME.blackUsername(),TEST_GAME.gameName(),TEST_GAME.game());
+        try{
+            GAME_DAO.updateGame(expected.gameID(),expected);
+        } catch (ResponseException ex) {
+            Assertions.fail("Error: couldn't update game, invalid id");
+        }
     }
     private void addValidUser() throws DataAccessException{
         String hash = BCrypt.hashpw(TEST_USER.password(),BCrypt.gensalt());
@@ -280,5 +307,20 @@ public class DatabaseUnitTests {
                 String.format(INCONSISTENT_ERROR,"gameName","gameName"));
         Assertions.assertEquals(JsonHandler.serialize(TEST_GAME.game()),dbGame,
                 String.format(INCONSISTENT_ERROR,"chessGame","chessGame"));
+    }
+    private GameData readGame(int gameId) throws DataAccessException{
+        var sql = "SELECT gameID, whiteUsername, blackUsername, gameName, chessGame FROM game WHERE gameID=?";
+        try (var conn = DatabaseManager.getConnection()){
+            try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                ps.setInt(1,gameId);
+                ResultSet rs = ps.executeQuery();
+                Assertions.assertTrue(rs.next(),"Error: No game with that gameID");
+                var game = new Gson().fromJson(rs.getString(5), ChessGame.class);
+                return new GameData(rs.getInt(1),
+                        rs.getString(2),rs.getString(3),rs.getString(4),game);
+            }
+        } catch (SQLException ex){
+            throw new DataAccessException("Error: " + ex.getMessage());
+        }
     }
 }
