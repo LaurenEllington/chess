@@ -29,6 +29,15 @@ public class DatabaseManager {
             throw new DataAccessException("failed to create database", ex);
         }
     }
+    static public void dropDatabase() throws DataAccessException {
+        var statement = "DROP DATABASE " + databaseName;
+        try (var conn = DriverManager.getConnection(connectionUrl, dbUsername, dbPassword);
+             var preparedStatement = conn.prepareStatement(statement)) {
+            preparedStatement.executeUpdate();
+        } catch (SQLException ex) {
+            throw new DataAccessException("failed to drop database", ex);
+        }
+    }
     static private final String[] CREATE_STATEMENTS = {
             """
             CREATE TABLE IF NOT EXISTS user (

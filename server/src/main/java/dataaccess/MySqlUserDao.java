@@ -8,9 +8,6 @@ import java.sql.ResultSet;
 import org.mindrot.jbcrypt.BCrypt;
 
 public class MySqlUserDao implements UserDao{
-    public MySqlUserDao() throws DataAccessException{
-        DatabaseManager.configureDatabase();
-    }
     public void createUser(UserData user){
         var statement = "INSERT INTO user (username, password, email) VALUES (?, ?, ?)";
         String hash = encryptPassword(user.password());
